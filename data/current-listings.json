@@ -1,0 +1,90 @@
+[
+  {
+    "rwId": "MRG34881",
+    "address": "504 Beach Road",
+    "suburb": "Murrays Bay",
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "parking": 4,
+    "floorArea": null,
+    "coverImageUrl": "https://cdn6.ep.dynamics.net/s3/rw-propertyimages/8bd5-H3526278-205345273__1781134857-25657-48504BeachRoad.jpg",
+    "sourceUrl": "https://www.raywhite.co.nz/auckland/north-shore-city/murrays-bay/MRG34881"
+  },
+  {
+    "rwId": "MRG35090",
+    "address": "2/8 Park Rise",
+    "suburb": "Campbells Bay",
+    "bedrooms": 4,
+    "bathrooms": 2,
+    "parking": 2,
+    "floorArea": "200 m²",
+    "coverImageUrl": "https://cdn6.ep.dynamics.net/s3/rw-propertyimages/8a85-H3532926-207431503__1782462250-99337-ChatGPTImageJun262026081449PM.png",
+    "sourceUrl": "https://www.raywhite.co.nz/auckland/north-shore-city/campbells-bay/MRG35090"
+  },
+  {
+    "rwId": "MRG34943",
+    "address": "313 East Coast Road",
+    "suburb": "Mairangi Bay",
+    "bedrooms": 4,
+    "bathrooms": 1,
+    "parking": 5,
+    "floorArea": "883 m²",
+    "coverImageUrl": "https://cdn6.ep.dynamics.net/s3/rw-propertyimages/6df8-H3541795-209422978__1783987931-42597-3313EastCoastRoad.jpg",
+    "sourceUrl": "https://www.raywhite.co.nz/auckland/north-shore-city/mairangi-bay/MRG34943"
+  },
+  {
+    "rwId": "MRG34093",
+    "address": "8 Aberdeen Road",
+    "suburb": "Campbells Bay",
+    "bedrooms": 5,
+    "bathrooms": 2,
+    "parking": 2,
+    "floorArea": "1017 m²",
+    "coverImageUrl": "https://cdn6.ep.dynamics.net/s3/rw-propertyimages/d475-H3536676-207754614__1782789847-76323-858AberdeenRoad.jpg",
+    "sourceUrl": "https://www.raywhite.co.nz/auckland/north-shore-city/campbells-bay/MRG34093"
+  },
+  {
+    "rwId": "MRG34740",
+    "address": "26 Baltimore Place",
+    "suburb": "Forrest Hill",
+    "bedrooms": 4,
+    "bathrooms": 3,
+    "parking": 6,
+    "floorArea": "973 m²",
+    "coverImageUrl": "https://cdn6.ep.dynamics.net/s3/rw-propertyimages/98b3-H3512491-201144315__1778624542-14966-6526BaltimorePlace.jpg",
+    "sourceUrl": "https://www.raywhite.co.nz/auckland/north-shore-city/forrest-hill/MRG34740"
+  },
+  {
+    "rwId": "MRG32484",
+    "address": "B/394 East Coast Road",
+    "suburb": "Sunnynook",
+    "bedrooms": 4,
+    "bathrooms": 3,
+    "parking": 2,
+    "floorArea": "220 m²",
+    "coverImageUrl": "https://cdn6.ep.dynamics.net/s3/rw-propertyimages/07b3-H3400889-173305321__1762371747-10225-135040016-325-17photoprint.jpg",
+    "sourceUrl": "https://www.raywhite.co.nz/auckland/north-shore-city/sunnynook/MRG32484"
+  },
+  {
+    "rwId": "MRG34887",
+    "address": "5/174 East Coast Road",
+    "suburb": "Forrest Hill",
+    "bedrooms": 2,
+    "bathrooms": 1,
+    "parking": 2,
+    "floorArea": null,
+    "coverImageUrl": "https://cdn6.ep.dynamics.net/s3/rw-propertyimages/9157-H3530071-206539485__1781922630-234057-545-174EastCoastRoad.jpg",
+    "sourceUrl": "https://www.raywhite.co.nz/auckland/north-shore-city/forrest-hill/MRG34887"
+  },
+  {
+    "rwId": "MRG30955",
+    "address": "246 Glenmore Road",
+    "suburb": "Coatesville",
+    "bedrooms": 5,
+    "bathrooms": 3,
+    "parking": 2,
+    "floorArea": "1 ha",
+    "coverImageUrl": "https://cdn6.ep.dynamics.net/s3/rw-propertyimages/224c-H3510486-195458748__1775512693-12901-98246GlenmoreRoad.jpg",
+    "sourceUrl": "https://www.raywhite.co.nz/auckland/north-shore-city/coatesville/MRG30955"
+  }
+]

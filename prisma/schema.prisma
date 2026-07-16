@@ -1,0 +1,210 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ListingStatus {
+  FOR_SALE
+  UNDER_OFFER
+  SOLD
+  COMING_SOON
+  ARCHIVED
+}
+
+enum PageKind {
+  CORE
+  AREA
+  BLOG
+  TESTIMONIAL
+  OTHER
+}
+
+model SiteSettings {
+  id                 String  @id @default("default")
+  siteName           String  @default("Drew Miller")
+  tagline            String  @default("North Shore real estate, done with clarity.")
+  agentName          String  @default("Drew Miller")
+  agencyName         String  @default("Ray White Mairangi Bay")
+  phone              String?
+  email              String?
+  rateMyAgentUrl     String  @default("https://www.ratemyagent.co.nz/real-estate-agent/drew-miller-au137/sales/overview")
+  rmaRatingLabel     String?
+  rmaReviewCount     Int?
+  bio                String?
+  heroImageUrl       String?
+  aboutMarkdown      String?
+  updatedAt          DateTime @updatedAt
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Agent {
+  id           String    @id @default(cuid())
+  slug         String    @unique
+  name         String
+  role         String?
+  email        String?
+  phone        String?
+  photoUrl     String?
+  bioHtml      String?
+  bioMarkdown  String?
+  sourceUrl    String?
+  /** Ray White office member id */
+  rwMemberId   Int?      @unique
+  rwUsername   String?
+  /** Drew = team lead / principal on this site */
+  isLead       Boolean   @default(false)
+  sortOrder    Int       @default(0)
+  published    Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  leadListings Listing[] @relation("LeadAgent")
+  listingLinks ListingAgent[]
+}
+
+model Listing {
+  id              String        @id @default(cuid())
+  /** Preserves Squarespace path, e.g. 54-headland-drive-long-bay */
+  slug            String        @unique
+  title           String
+  address         String
+  suburb          String?
+  city            String        @default("Auckland")
+  status          ListingStatus @default(SOLD)
+  summary         String?
+  bodyMarkdown    String?
+  bodyHtml        String?
+  bedrooms        Int?
+  bathrooms       Int?
+  parking         Int?
+  propertyType    String?
+  soldPriceCents  Int?
+  soldDate        DateTime?
+  /** Original Ray White listing / marketing start date */
+  listedAt        DateTime?
+  listedPriceLabel String?
+  coverImageUrl   String?
+  latitude        Float?
+  longitude       Float?
+  sourceUrl       String?
+  importSource    String?
+  /** Ray White listing id / source code for team sync, e.g. MRG35122 */
+  externalId      String?       @unique
+  leadAgentId     String?
+  leadAgent       Agent?        @relation("LeadAgent", fields: [leadAgentId], references: [id], onDelete: SetNull)
+  seoTitle        String?
+  seoDescription  String?
+  published       Boolean       @default(true)
+  featured        Boolean       @default(false)
+  legacyCategory  String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  images          ListingImage[]
+  agentLinks      ListingAgent[]
+
+  @@index([status, soldDate])
+  @@index([suburb])
+  @@index([latitude, longitude])
+  @@index([leadAgentId])
+  @@index([listedAt])
+}
+
+/** Agents marketing a listing (lead + co-agents). */
+model ListingAgent {
+  listingId String
+  agentId   String
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  agent     Agent   @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  isLead    Boolean @default(false)
+  sortOrder Int     @default(0)
+
+  @@id([listingId, agentId])
+  @@index([agentId])
+}
+
+model ListingImage {
+  id        String  @id @default(cuid())
+  listingId String
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  url       String
+  alt       String?
+  sortOrder Int     @default(0)
+
+  @@index([listingId])
+}
+
+model Sale {
+  id             String    @id @default(cuid())
+  address        String
+  suburb         String?
+  propertyType   String?
+  bedrooms       Int?
+  bathrooms      Int?
+  soldPriceCents Int?
+  soldDate       DateTime?
+  latitude       Float?
+  longitude      Float?
+  sourceUrl      String?
+  listingId      String?
+  notes          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([suburb])
+  @@index([latitude, longitude])
+  @@index([soldDate])
+}
+
+model ContentPage {
+  id             String   @id @default(cuid())
+  slug           String   @unique
+  kind           PageKind @default(OTHER)
+  title          String
+  summary        String?
+  bodyMarkdown   String?
+  bodyHtml       String?
+  coverImageUrl  String?
+  seoTitle       String?
+  seoDescription String?
+  published      Boolean  @default(true)
+  publishedAt    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Testimonial {
+  id           String   @id @default(cuid())
+  slug         String   @unique
+  clientName   String
+  propertyLabel String?
+  quote        String
+  bodyMarkdown String?
+  rating       Int?
+  sourceUrl    String?
+  published    Boolean  @default(true)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model AppraisalLead {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  address   String
+  message   String?
+  source    String?
+  createdAt DateTime @default(now())
+}

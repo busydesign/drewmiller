@@ -1,0 +1,57 @@
+/* Optional licensed Universal Sans — only loads when files exist in /fonts/universal-sans */
+
+@font-face {
+  font-family: "Universal Sans Display";
+  src:
+    local("Universal Sans Display"),
+    url("/fonts/universal-sans/UniversalSansDisplay-Regular.woff2")
+      format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Universal Sans Display";
+  src:
+    local("Universal Sans Display Medium"),
+    local("Universal Sans Display"),
+    url("/fonts/universal-sans/UniversalSansDisplay-Medium.woff2")
+      format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Universal Sans Display";
+  src:
+    local("Universal Sans Display SemiBold"),
+    local("Universal Sans Display"),
+    url("/fonts/universal-sans/UniversalSansDisplay-SemiBold.woff2")
+      format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Universal Sans Text";
+  src:
+    local("Universal Sans Text"),
+    url("/fonts/universal-sans/UniversalSansText-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Universal Sans Text";
+  src:
+    local("Universal Sans Text Medium"),
+    local("Universal Sans Text"),
+    url("/fonts/universal-sans/UniversalSansText-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}

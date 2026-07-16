@@ -1,0 +1,402 @@
+@import "tailwindcss";
+@import "./fonts.css";
+
+/* Tesla-inspired minimal system — yellow kept as the single CTA accent */
+:root {
+  --rw-yellow: #ffe512;
+  --rw-yellow-deep: #f0d600;
+  --ink: #171a20;
+  --ink-soft: #5c5e62;
+  --muted: #8e8e8e;
+  --mist: #f4f4f4;
+  --paper: #ffffff;
+  --cream: #f4f4f4;
+  --line: #eeeeee;
+  --line-strong: #d0d1d2;
+  --sea: #171a20;
+  --sea-deep: #000000;
+  --sea-soft: #f4f4f4;
+  --sand: #ffe512;
+  --danger: #b42318;
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --font-display: "Universal Sans Display", var(--font-inter), -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  --font-sans: "Universal Sans Text", "Universal Sans Display",
+    var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Arial,
+    sans-serif;
+  --motion: 330ms cubic-bezier(0.5, 0, 0, 0.75);
+  --shell-max: 1200px;
+  --shell-gutter: 2.5rem;
+  --shell-gutter-mobile: 1.25rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-muted: var(--muted);
+  --color-mist: var(--mist);
+  --color-paper: var(--paper);
+  --color-cream: var(--cream);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-sea: var(--sea);
+  --color-sea-deep: var(--sea-deep);
+  --color-sea-soft: var(--sea-soft);
+  --color-sand: var(--sand);
+  --color-rw-yellow: var(--rw-yellow);
+  --color-rw-yellow-deep: var(--rw-yellow-deep);
+  --font-sans: "Universal Sans Text", "Universal Sans Display",
+    var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Arial,
+    sans-serif;
+  --font-display: "Universal Sans Display", var(--font-inter), -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  background: var(--paper);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: 400;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background: var(--rw-yellow);
+  color: var(--ink);
+}
+
+/* Display = same family, medium weight — no serif contrast */
+.display {
+  font-family: var(--font-display) !important;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+  font-weight: 500;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  padding: 0.7rem 1.5rem;
+  min-height: 40px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  transition:
+    transform var(--motion),
+    background var(--motion),
+    color var(--motion),
+    border-color var(--motion),
+    opacity var(--motion);
+}
+
+.btn:hover {
+  transform: none;
+  opacity: 0.92;
+}
+
+.btn-primary {
+  background: var(--rw-yellow);
+  color: var(--ink);
+}
+
+.btn-primary:hover {
+  background: var(--rw-yellow-deep);
+  opacity: 1;
+}
+
+.btn-secondary {
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+}
+
+.btn-secondary:hover {
+  background: var(--mist);
+  opacity: 1;
+}
+
+.btn-sea {
+  background: var(--ink);
+  color: white;
+}
+
+.btn-sea:hover {
+  background: #000;
+  opacity: 1;
+}
+
+.btn-on-dark {
+  border: 1px solid rgb(255 255 255 / 0.55);
+  background: rgb(255 255 255 / 0.12);
+  color: white;
+  backdrop-filter: blur(16px);
+}
+
+.btn-on-dark:hover {
+  background: white;
+  color: var(--ink);
+  opacity: 1;
+}
+
+.shell {
+  width: min(var(--shell-max), calc(100% - (var(--shell-gutter) * 2)));
+  margin-inline: auto;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --shell-gutter: var(--shell-gutter-mobile);
+  }
+}
+
+/* Shared inset so full-bleed scrollers align with .shell */
+.shell-inline-pad {
+  padding-inline: max(
+    var(--shell-gutter),
+    calc((100vw - min(var(--shell-max), calc(100vw - var(--shell-gutter) * 2))) / 2)
+  );
+}
+
+/*
+  Horizontal sliders: padding alone doesn’t shift snap points.
+  scroll-padding keeps snap-start aligned to the shell margin.
+*/
+.slider-scroller {
+  --slider-inset: max(
+    var(--shell-gutter),
+    calc((100vw - min(var(--shell-max), calc(100vw - var(--shell-gutter) * 2))) / 2)
+  );
+  padding-left: var(--slider-inset);
+  padding-right: max(var(--shell-gutter), 2.5rem);
+  scroll-padding-left: var(--slider-inset);
+  scroll-padding-right: max(var(--shell-gutter), 2.5rem);
+}
+
+.section {
+  padding-block: clamp(3.25rem, 8vw, 6.5rem);
+}
+
+.section-tight {
+  padding-block: clamp(2.25rem, 5vw, 3.5rem);
+}
+
+.eyebrow {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--muted);
+}
+
+.prose-site {
+  max-width: 62ch;
+  color: var(--ink-soft);
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+.prose-site h1,
+.prose-site h2,
+.prose-site h3 {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+.prose-site img {
+  max-width: 100%;
+  height: auto;
+}
+
+.prose-site p + p {
+  margin-top: 0.9em;
+}
+
+.prose-site h2,
+.prose-site h3 {
+  margin-top: 1.4em;
+  margin-bottom: 0.4em;
+}
+
+.prose-site .sqs-block-spacer,
+.prose-site .spacer-block,
+.prose-site .social-account-links-block,
+.prose-site .sqs-block-socialaccountlinks,
+.prose-site .sqs-svg-icon--outer,
+.prose-site .horizontalrule-block {
+  display: none !important;
+}
+
+.glass {
+  background: rgb(255 255 255 / 0.72);
+  border: 1px solid rgb(23 26 32 / 0.06);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+
+.glass-panel {
+  background: var(--mist);
+  border: none;
+  box-shadow: none;
+}
+
+/* Scroll reveals — only active once JS enables .reveal-enabled */
+.reveal-pending main section:not([data-reveal-skip]),
+.reveal-pending [data-reveal],
+.reveal-pending [data-reveal-stagger] > * {
+  opacity: 0;
+  transform: translate3d(0, 22px, 0);
+}
+
+.reveal-enabled .reveal-ready,
+.reveal-enabled [data-reveal-stagger].reveal-ready > * {
+  opacity: 0;
+  transform: translate3d(0, 22px, 0);
+  transition:
+    opacity 700ms cubic-bezier(0.5, 0, 0, 0.75),
+    transform 700ms cubic-bezier(0.5, 0, 0, 0.75);
+  will-change: opacity, transform;
+}
+
+.reveal-enabled .reveal-ready.is-revealed {
+  opacity: 1;
+  transform: none;
+}
+
+.reveal-enabled [data-reveal-stagger].reveal-ready.is-revealed > * {
+  opacity: 1;
+  transform: none;
+}
+
+.reveal-enabled [data-reveal-stagger].reveal-ready.is-revealed > *:nth-child(1) {
+  transition-delay: 0ms;
+}
+.reveal-enabled [data-reveal-stagger].reveal-ready.is-revealed > *:nth-child(2) {
+  transition-delay: 70ms;
+}
+.reveal-enabled [data-reveal-stagger].reveal-ready.is-revealed > *:nth-child(3) {
+  transition-delay: 140ms;
+}
+.reveal-enabled [data-reveal-stagger].reveal-ready.is-revealed > *:nth-child(4) {
+  transition-delay: 210ms;
+}
+.reveal-enabled [data-reveal-stagger].reveal-ready.is-revealed > *:nth-child(5) {
+  transition-delay: 280ms;
+}
+.reveal-enabled [data-reveal-stagger].reveal-ready.is-revealed > *:nth-child(6) {
+  transition-delay: 350ms;
+}
+.reveal-enabled [data-reveal-stagger].reveal-ready.is-revealed > *:nth-child(n + 7) {
+  transition-delay: 400ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-pending main section:not([data-reveal-skip]),
+  .reveal-pending [data-reveal],
+  .reveal-pending [data-reveal-stagger] > *,
+  .reveal-enabled .reveal-ready,
+  .reveal-enabled [data-reveal-stagger].reveal-ready > * {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+.fade-up {
+  animation: fade-up 700ms cubic-bezier(0.5, 0, 0, 0.75) both;
+}
+
+.fade-up-delay {
+  animation: fade-up 900ms cubic-bezier(0.5, 0, 0, 0.75) 100ms both;
+}
+
+.fade-up-delay-2 {
+  animation: fade-up 900ms cubic-bezier(0.5, 0, 0, 0.75) 200ms both;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes map-pin-pulse {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.95;
+  }
+  50% {
+    transform: translateY(-4px) scale(1.08);
+    opacity: 1;
+  }
+}
+
+.map-promo-pin {
+  animation: map-pin-pulse 2.4s ease-in-out infinite;
+}
+
+.map-pin-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+.map-pin {
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.22));
+  transition: transform 160ms ease;
+  transform-origin: 50% 100%;
+}
+
+.map-pin-icon:hover .map-pin,
+.leaflet-marker-icon:hover .map-pin {
+  transform: scale(1.08);
+}
+
+.map-shell {
+  border: 1px solid var(--line);
+  overflow: hidden;
+  background: white;
+  border-radius: 12px;
+}
+
+.map-shell .leaflet-container {
+  width: 100%;
+  font: inherit;
+  z-index: 0;
+}
+
+.rw-yellow-bar {
+  background: var(--mist);
+  color: var(--ink);
+  border-block: 1px solid var(--line);
+}

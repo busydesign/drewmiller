@@ -1,0 +1,92 @@
+[
+  {
+    "address": "5 Mayfair Crescent, Mairangi Bay, Auckland 0630",
+    "suburb": "Mairangi Bay",
+    "propertyType": "house",
+    "bedrooms": 4,
+    "bathrooms": 2,
+    "soldPriceDollars": "2450000",
+    "soldDate": "2025-09-12",
+    "sourceUrl": "https://www.ratemyagent.co.nz/real-estate-agent/drew-miller-au137/sales/overview"
+  },
+  {
+    "address": "103 Sunrise Avenue, Mairangi Bay, Auckland 0630",
+    "suburb": "Mairangi Bay",
+    "propertyType": "house",
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "soldPriceDollars": "1980000",
+    "soldDate": "2025-07-18",
+    "sourceUrl": "https://www.ratemyagent.co.nz/real-estate-agent/drew-miller-au137/sales/overview"
+  },
+  {
+    "address": "37A Penzance Road, Mairangi Bay, Auckland 0630",
+    "suburb": "Mairangi Bay",
+    "propertyType": "house",
+    "bedrooms": 4,
+    "bathrooms": 2,
+    "soldPriceDollars": "2650000",
+    "soldDate": "2025-05-22",
+    "sourceUrl": "https://www.ratemyagent.co.nz/real-estate-agent/drew-miller-au137/sales/overview"
+  },
+  {
+    "address": "2/30 Newhaven Terrace, Mairangi Bay, Auckland 0630",
+    "suburb": "Mairangi Bay",
+    "propertyType": "townhouse",
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "soldPriceDollars": "1280000",
+    "soldDate": "2025-11-03",
+    "sourceUrl": "https://www.ratemyagent.co.nz/real-estate-agent/drew-miller-au137/sales/overview"
+  },
+  {
+    "address": "2/12 Ramsgate Terrace, Mairangi Bay, Auckland 0630",
+    "suburb": "Mairangi Bay",
+    "propertyType": "townhouse",
+    "bedrooms": 2,
+    "bathrooms": 1,
+    "soldPriceDollars": "1150000",
+    "soldDate": "2025-08-30",
+    "sourceUrl": "https://www.ratemyagent.co.nz/real-estate-agent/drew-miller-au137/sales/overview"
+  },
+  {
+    "address": "17 Hythe Terrace, Mairangi Bay, Auckland 0630",
+    "suburb": "Mairangi Bay",
+    "propertyType": "house",
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "soldPriceDollars": "2100000",
+    "soldDate": "2026-01-08",
+    "sourceUrl": "https://www.ratemyagent.co.nz/real-estate-agent/drew-miller-au137/sales/overview"
+  },
+  {
+    "address": "8B Folkestone Street, Mairangi Bay, Auckland 0630",
+    "suburb": "Mairangi Bay",
+    "propertyType": "house",
+    "bedrooms": 4,
+    "bathrooms": 2,
+    "soldPriceDollars": "2350000",
+    "soldDate": "2025-10-15",
+    "sourceUrl": "https://www.ratemyagent.co.nz/real-estate-agent/drew-miller-au137/sales/overview"
+  },
+  {
+    "address": "16 Eban Avenue, Hillcrest, Auckland 0627",
+    "suburb": "Hillcrest",
+    "propertyType": "house",
+    "bedrooms": 4,
+    "bathrooms": 2,
+    "soldPriceDollars": "1850000",
+    "soldDate": "2025-11-15",
+    "sourceUrl": "https://www.ratemyagent.co.nz/real-estate-agent/drew-miller-au137/sales/overview"
+  },
+  {
+    "address": "42 Combes Road, Hillcrest, Auckland 0627",
+    "suburb": "Hillcrest",
+    "propertyType": "house",
+    "bedrooms": 3,
+    "bathrooms": 1,
+    "soldPriceDollars": "1420000",
+    "soldDate": "2026-01-20",
+    "sourceUrl": "https://www.ratemyagent.co.nz/real-estate-agent/drew-miller-au137/sales/overview"
+  }
+]
