@@ -21,9 +21,6 @@
     "db:fix-sold-covers": "tsx scripts/fix-sold-covers.ts",
     "db:push-sqlite": "tsx scripts/push-sqlite-to-postgres.ts"
   },
-  "prisma": {
-    "seed": "tsx scripts/import-migration.ts"
-  },
   "dependencies": {
     "@prisma/client": "^6.19.3",
     "bcryptjs": "^3.0.3",
