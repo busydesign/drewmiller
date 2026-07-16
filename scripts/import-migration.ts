@@ -210,8 +210,9 @@ async function main() {
 
     if (page.category === "listing-or-case-study") {
       const address = titleToAddress(title, slug);
+      // Prefer Squarespace CDN URLs so production does not depend on /migration-images.
       const galleryLocals = content.images
-        .map((i) => i.local || i.url)
+        .map((i) => i.url || i.local)
         .filter(
           (url): url is string =>
             Boolean(url) &&

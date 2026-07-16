@@ -19,7 +19,8 @@
     "db:sync-team": "tsx scripts/sync-team-listings.ts",
     "db:geocode": "tsx scripts/geocode-sales.ts",
     "db:fix-sold-covers": "tsx scripts/fix-sold-covers.ts",
-    "db:push-sqlite": "tsx scripts/push-sqlite-to-postgres.ts"
+    "db:push-sqlite": "tsx scripts/push-sqlite-to-postgres.ts",
+    "db:rewrite-images": "tsx scripts/rewrite-migration-image-urls.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
