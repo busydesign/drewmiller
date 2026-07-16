@@ -32,17 +32,14 @@ Fix in Railway (most reliable):
   2. Variables → copy the value of DATABASE_URL (the real postgres://... string)
   3. Click the web service → Variables
   4. Edit DATABASE_URL and paste that postgres:// string directly
-  5. Deploy → Redeploy
-
-Or keep a reference, but the service name must match the canvas exactly:
-  DATABASE_URL=\${{ Postgres.DATABASE_URL }}
-  (spaces after {{ and before }}, and "Postgres" must match the DB service name)
+  5. Canvas → Deploy staged changes (purple banner)
 `);
   process.exit(1);
 }
 
+const port = process.env.PORT || "3000";
 console.log(
-  `DATABASE_URL loaded (${process.env.DATABASE_URL.length} chars; keys: ${relatedKeys.join(", ") || "DATABASE_URL"})`
+  `DATABASE_URL loaded (${process.env.DATABASE_URL.length} chars); listening on 0.0.0.0:${port}`
 );
 
 function run(command, args) {
@@ -56,4 +53,4 @@ function run(command, args) {
 }
 
 run("npx", ["prisma", "migrate", "deploy"]);
-run("npm", ["run", "start"]);
+run("npx", ["next", "start", "--hostname", "0.0.0.0", "--port", port]);
