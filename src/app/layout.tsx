@@ -5,6 +5,9 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import "./globals.css";
 
+/** Render on demand so production builds do not need DATABASE_URL. */
+export const dynamic = "force-dynamic";
+
 /** Interim stand-in until licensed Universal Sans files are added. */
 const inter = Inter({
   subsets: ["latin"],

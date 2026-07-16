@@ -33,20 +33,6 @@ const RESERVED = new Set([
   "team",
 ]);
 
-export async function generateStaticParams() {
-  const [listings, pages] = await Promise.all([
-    prisma.listing.findMany({ select: { slug: true } }),
-    prisma.contentPage.findMany({
-      where: { published: true },
-      select: { slug: true },
-    }),
-  ]);
-  return [...listings, ...pages]
-    .map((row) => row.slug)
-    .filter((slug) => !slug.includes("/") && !RESERVED.has(slug))
-    .map((slug) => ({ slug }));
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const listing = await prisma.listing.findUnique({ where: { slug } });

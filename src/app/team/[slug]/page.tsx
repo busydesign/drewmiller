@@ -8,14 +8,6 @@ import { agentsForCard, getAgentListings } from "@/lib/listings-query";
 
 type Props = { params: Promise<{ slug: string }> };
 
-export async function generateStaticParams() {
-  const agents = await prisma.agent.findMany({
-    where: { published: true },
-    select: { slug: true },
-  });
-  return agents.map((a) => ({ slug: a.slug }));
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const agent = await prisma.agent.findUnique({ where: { slug } });

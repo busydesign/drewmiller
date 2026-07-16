@@ -2,7 +2,28 @@ import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/db";
 import { siteUrl } from "@/lib/format";
 
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const staticRoutes = [
+    "",
+    "/listings",
+    "/sold",
+    "/map",
+    "/appraisal",
+    "/about",
+    "/contact",
+  ].map((path) => ({
+    url: siteUrl(path || "/"),
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: path === "" ? 1 : 0.8,
+  }));
+
+  if (!process.env.DATABASE_URL) {
+    return staticRoutes;
+  }
+
   const [listings, pages] = await Promise.all([
     prisma.listing.findMany({
       where: { published: true },
@@ -13,23 +34,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       select: { slug: true, updatedAt: true },
     }),
   ]);
-
-  const staticRoutes = [
-    "",
-    "/listings",
-    "/sold",
-    "/map",
-    "/appraisal",
-    "/about",
-    "/contact",
-  ].map(
-    (path) => ({
-      url: siteUrl(path || "/"),
-      lastModified: new Date(),
-      changeFrequency: "weekly" as const,
-      priority: path === "" ? 1 : 0.8,
-    })
-  );
 
   return [
     ...staticRoutes,
