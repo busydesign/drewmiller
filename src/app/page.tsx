@@ -136,8 +136,8 @@ export default async function HomePage() {
       </section>
 
       {/* 3. Awards + recognition — equal columns */}
-      <section className="section max-md:pb-28 border-y border-line bg-paper">
-        <div className="shell">
+      <section className="section max-md:pb-28 overflow-x-hidden border-y border-line bg-paper">
+        <div className="shell min-w-0">
           <div data-reveal className="max-w-2xl">
             <p className="eyebrow">Recognition</p>
             <h2 className="display mt-2 text-4xl md:text-5xl">
@@ -151,11 +151,11 @@ export default async function HomePage() {
 
           <div
             data-reveal
-            className="mt-10 grid gap-5 md:grid-cols-2 md:items-stretch md:gap-8"
+            className="mt-10 grid min-w-0 gap-5 md:grid-cols-2 md:items-stretch md:gap-8"
           >
             {/* Left — Ray White */}
-            <div className="flex h-full flex-col border border-line bg-white p-5 shadow-[0_4px_24px_rgb(0_0_0_/0.06)] sm:p-6 md:p-8">
-              <div className="flex items-start justify-between gap-4">
+            <div className="flex min-w-0 flex-col overflow-hidden border border-line bg-white p-5 shadow-[0_4px_24px_rgb(0_0_0_/0.06)] sm:p-6 md:p-8">
+              <div className="flex min-w-0 items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
                   <p className="text-xl font-medium tracking-tight md:text-2xl">
                     Elite · {RAY_WHITE_ELITE_BADGE.period}
@@ -170,11 +170,11 @@ export default async function HomePage() {
                   alt={RAY_WHITE_ELITE_BADGE.alt}
                   width={220}
                   height={136}
-                  className="h-16 w-auto shrink-0 object-contain sm:h-20 md:h-24"
+                  className="h-16 w-auto max-w-[34%] shrink-0 object-contain sm:h-20 sm:max-w-none md:h-24"
                 />
               </div>
 
-              <dl className="mt-6 grid grid-cols-3 gap-3 md:mt-8 md:gap-4">
+              <dl className="mt-6 grid min-w-0 grid-cols-3 gap-2 md:mt-8 md:gap-4">
                 {[
                   {
                     label: "Successful sales",
@@ -189,11 +189,11 @@ export default async function HomePage() {
                     value: AGENT_STATS.experienceLabel,
                   },
                 ].map((item) => (
-                  <div key={item.label}>
+                  <div key={item.label} className="min-w-0">
                     <dt className="text-[10px] leading-snug text-muted sm:text-[11px]">
                       {item.label}
                     </dt>
-                    <dd className="display mt-1 text-xl leading-none sm:text-2xl md:text-3xl">
+                    <dd className="display mt-1 truncate text-xl leading-none sm:text-2xl md:text-3xl">
                       {item.value}
                     </dd>
                   </div>
@@ -202,8 +202,8 @@ export default async function HomePage() {
             </div>
 
             {/* Right — RateMyAgent */}
-            <div className="flex h-full flex-col border border-line bg-white p-5 shadow-[0_4px_24px_rgb(0_0_0_/0.06)] sm:p-6 md:p-8">
-              <div className="flex items-start justify-between gap-4">
+            <div className="flex min-w-0 flex-col overflow-hidden border border-line bg-white p-5 shadow-[0_4px_24px_rgb(0_0_0_/0.06)] sm:p-6 md:p-8">
+              <div className="flex min-w-0 items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
                   <p className="text-xl font-medium tracking-tight md:text-2xl">
                     Independent awards
@@ -218,27 +218,29 @@ export default async function HomePage() {
                   alt="RateMyAgent"
                   width={140}
                   height={80}
-                  className="h-9 w-auto shrink-0 object-contain sm:h-10 md:h-12"
+                  className="h-9 w-auto max-w-[30%] shrink-0 object-contain sm:h-10 sm:max-w-none md:h-12"
                 />
               </div>
 
-              {/* Mobile: scrollable badges. Desktop: balanced 5-up grid. */}
-              <ul className="-mx-5 mt-6 flex gap-4 overflow-x-auto px-5 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] snap-x snap-mandatory [&::-webkit-scrollbar]:hidden md:mx-0 md:mt-8 md:grid md:grid-cols-5 md:gap-3 md:overflow-visible md:px-0 md:pb-0">
-                {RMA_AWARD_BADGES.map((badge) => (
+              {/* Mobile: taller 2-col with larger badges. Desktop: 5-up. */}
+              <ul className="mt-6 grid grid-cols-2 justify-items-center gap-x-4 gap-y-6 md:mt-8 md:grid-cols-5 md:gap-3">
+                {RMA_AWARD_BADGES.map((badge, index) => (
                   <li
                     key={badge.id}
-                    className="flex w-[4.75rem] shrink-0 snap-start flex-col items-center text-center md:w-auto md:shrink"
+                    className={`flex w-full min-w-0 max-w-[8rem] flex-col items-center text-center md:max-w-[5.5rem] ${
+                      index === 4 ? "col-span-2 max-w-[8rem] md:col-span-1" : ""
+                    }`}
                   >
-                    <div className="relative mx-auto aspect-square w-full max-w-[4.75rem] md:max-w-[5.5rem]">
+                    <div className="relative mx-auto aspect-square w-full max-w-[6.5rem] md:max-w-[5.5rem]">
                       <Image
                         src={badge.image}
                         alt={badge.title}
                         fill
                         className="object-contain"
-                        sizes="76px"
+                        sizes="(max-width: 768px) 104px, 88px"
                       />
                     </div>
-                    <p className="mt-2 line-clamp-2 text-[11px] font-medium leading-snug text-ink">
+                    <p className="mt-2.5 line-clamp-2 text-xs font-medium leading-snug text-ink md:text-[11px]">
                       {badge.title}
                     </p>
                   </li>
