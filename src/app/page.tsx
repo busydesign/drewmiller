@@ -1,51 +1,58 @@
 import Image from "next/image";
 import Link from "next/link";
+import { MessageSquare } from "lucide-react";
 import { HeroBanner } from "@/components/HeroBanner";
 import { HorizontalSlider } from "@/components/HorizontalSlider";
 import { ListingCard } from "@/components/ListingCard";
-import { RmaBadgeStrip } from "@/components/RmaBadgeStrip";
 import { SalesMapPromo } from "@/components/SalesMapPromo";
 import { TeamGrid } from "@/components/TeamGrid";
 import {
   AGENT_STATS,
   FEATURED_REVIEWS,
+  DREW_PORTRAIT,
   RATE_MY_AGENT_URL,
   RAY_WHITE_ELITE_BADGE,
+  RMA_AWARD_BADGES,
 } from "@/lib/agent-proof";
 import { prisma } from "@/lib/db";
+import { getSalesMapPins } from "@/lib/map-pins";
 import {
   agentsForCard,
   getCurrentTeamListings,
-  listingCardInclude,
 } from "@/lib/listings-query";
 
 export default async function HomePage() {
-  const [settings, currentListings, featured, listingCount, team, mappedSales] =
+  const [settings, currentListings, team, mapPins, blogPosts] =
     await Promise.all([
       prisma.siteSettings.findUnique({ where: { id: "default" } }),
       getCurrentTeamListings(10),
-      prisma.listing.findMany({
-        where: { published: true, status: "SOLD" },
-        orderBy: [{ soldDate: "desc" }, { updatedAt: "desc" }],
-        take: 10,
-        include: listingCardInclude,
-      }),
-      prisma.listing.count({ where: { published: true, status: "SOLD" } }),
       prisma.agent.findMany({
         where: { published: true },
         orderBy: [{ isLead: "desc" }, { sortOrder: "asc" }],
       }),
-      prisma.sale.count({
-        where: { latitude: { not: null }, longitude: { not: null } },
+      getSalesMapPins(),
+      prisma.contentPage.findMany({
+        where: { published: true, kind: "BLOG" },
+        orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
+        take: 3,
+        select: {
+          slug: true,
+          title: true,
+          summary: true,
+          coverImageUrl: true,
+          publishedAt: true,
+        },
       }),
     ]);
+  const mappedSales = mapPins.sold.length;
 
   return (
     <>
+      {/* 1. Hero + appraisal CTA */}
       <HeroBanner>
         <div className="text-white">
           <p className="eyebrow fade-up !text-white/65">
-            Ray White · Mairangi Bay &amp; Milford
+            Ray White Mairangi Bay &amp; Milford
           </p>
           <h1 className="display fade-up-delay mt-4 text-5xl font-medium md:text-7xl">
             Drew Miller
@@ -59,104 +66,387 @@ export default async function HomePage() {
             <Link href="/appraisal" className="btn btn-primary">
               Request an appraisal
             </Link>
-            <Link href="/listings" className="btn btn-on-dark">
-              Current listings
+            <Link href="/about" className="btn btn-on-dark">
+              About Drew
             </Link>
           </div>
         </div>
       </HeroBanner>
 
-      <section className="border-b border-line bg-paper">
-        <div
-          data-reveal-stagger
-          className="shell grid grid-cols-2 items-center py-8 md:grid-cols-5 md:py-10"
-        >
-          {[
-            { label: "Successful sales", value: AGENT_STATS.salesCountLabel },
-            { label: "Sales volume", value: AGENT_STATS.salesVolumeLabel },
-            { label: "Client rating", value: "5.0" },
-            { label: "Experience", value: AGENT_STATS.experienceLabel },
-          ].map((item, index) => (
-            <div
-              key={item.label}
-              className={`px-4 py-3 text-center md:px-5 md:py-0 md:text-left lg:px-6 ${
-                index > 0 ? "md:border-l md:border-line" : ""
-              } ${index >= 2 ? "border-t border-line md:border-t-0" : ""}`}
-            >
-              <p className="display text-2xl md:text-3xl">{item.value}</p>
-              <p className="mt-1.5 text-[13px] text-muted">{item.label}</p>
+      {/* 2. Personal introduction + team */}
+      <section className="section bg-paper">
+        <div className="shell">
+          <div
+            data-reveal
+            className="grid items-center gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:gap-14"
+          >
+            <div className="relative min-h-[320px] overflow-hidden bg-mist md:min-h-[420px]">
+              <Image
+                src={DREW_PORTRAIT}
+                alt="Drew Miller"
+                fill
+                className="object-cover object-[center_20%]"
+                sizes="(max-width: 1024px) 100vw, 40vw"
+                priority
+              />
             </div>
-          ))}
-          <div className="col-span-2 flex items-center justify-center border-t border-line px-4 py-4 md:col-span-1 md:justify-end md:border-l md:border-t-0 md:py-0 md:pl-5 lg:pl-6">
-            <Image
-              src={RAY_WHITE_ELITE_BADGE.image}
-              alt={RAY_WHITE_ELITE_BADGE.alt}
-              width={200}
-              height={124}
-              className="h-auto w-full max-w-[8.5rem] object-contain md:max-w-[9.5rem]"
-              priority
-            />
+            <div>
+              <p className="eyebrow">Meet Drew</p>
+              <h2 className="display mt-2 text-4xl md:text-5xl">
+                Straight shooter. Local to the bone.
+              </h2>
+              <p className="prose-site mt-4 max-w-xl">
+                Having spent his life on Auckland’s North Shore, Drew brings
+                genuine community knowledge — and the negotiation experience of
+                hundreds of real transactions. Clear advice, no theatrics, and a
+                process built around getting the result that matters.
+              </p>
+              <p className="mt-4 max-w-xl text-ink-soft">
+                Beside him is a focused Ray White Mairangi Bay team — so every
+                client gets specialist attention under one proven umbrella.
+              </p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link href="/about" className="btn btn-primary">
+                  About Drew
+                </Link>
+                <Link href="/team" className="btn btn-secondary">
+                  Meet the team
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {team.length > 0 && (
+            <div className="mt-16 md:mt-20">
+              <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
+                <div>
+                  <p className="eyebrow">Under Drew’s umbrella</p>
+                  <h2 className="display mt-2 text-3xl md:text-4xl">
+                    The team
+                  </h2>
+                </div>
+                <Link href="/team" className="btn btn-secondary">
+                  View full team
+                </Link>
+              </div>
+              <TeamGrid members={team} compact />
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* 3. Awards + recognition — equal columns */}
+      <section className="section border-y border-line bg-paper">
+        <div className="shell">
+          <div data-reveal className="max-w-2xl">
+            <p className="eyebrow">Recognition</p>
+            <h2 className="display mt-2 text-4xl md:text-5xl">
+              Awards and professional standing
+            </h2>
+            <p className="mt-3 text-ink-soft">
+              Ray White Elite performance and RateMyAgent recognition — backed
+              by a clear North Shore track record.
+            </p>
+          </div>
+
+          <div
+            data-reveal
+            className="mt-10 grid gap-6 md:grid-cols-2 md:gap-8 md:items-stretch"
+          >
+            {/* Left — Ray White */}
+            <div className="flex h-full flex-col border border-line bg-white p-6 shadow-[0_4px_24px_rgb(0_0_0_/0.06)] md:p-8">
+              <div className="flex items-start justify-between gap-5">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xl font-medium tracking-tight md:text-2xl">
+                    Elite · {RAY_WHITE_ELITE_BADGE.period}
+                  </p>
+                  <p className="mt-2 text-sm text-ink-soft">
+                    Among Ray White’s top performers for results and
+                    consistency.
+                  </p>
+                </div>
+                <Image
+                  src={RAY_WHITE_ELITE_BADGE.image}
+                  alt={RAY_WHITE_ELITE_BADGE.alt}
+                  width={220}
+                  height={136}
+                  className="h-20 w-auto shrink-0 object-contain md:h-24"
+                />
+              </div>
+
+              <dl className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-3 sm:gap-4">
+                {[
+                  {
+                    label: "Successful sales",
+                    value: AGENT_STATS.salesCountLabel,
+                  },
+                  {
+                    label: "Sales volume",
+                    value: AGENT_STATS.salesVolumeLabel,
+                  },
+                  {
+                    label: "Experience",
+                    value: AGENT_STATS.experienceLabel,
+                  },
+                ].map((item) => (
+                  <div key={item.label}>
+                    <dt className="text-[11px] text-muted">{item.label}</dt>
+                    <dd className="display mt-1 text-2xl md:text-3xl">
+                      {item.value}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+
+            {/* Right — RateMyAgent */}
+            <div className="flex h-full flex-col border border-line bg-white p-6 shadow-[0_4px_24px_rgb(0_0_0_/0.06)] md:p-8">
+              <div className="flex items-start justify-between gap-5">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xl font-medium tracking-tight md:text-2xl">
+                    Independent awards
+                  </p>
+                  <p className="mt-2 text-sm text-ink-soft">
+                    National and local recognition from verified client
+                    feedback.
+                  </p>
+                </div>
+                <Image
+                  src="/brand/rma/logo-stacked.svg"
+                  alt="RateMyAgent"
+                  width={140}
+                  height={80}
+                  className="h-10 w-auto shrink-0 object-contain md:h-12"
+                />
+              </div>
+
+              <ul className="mt-8 grid grid-cols-5 items-start gap-2 sm:gap-3">
+                {RMA_AWARD_BADGES.map((badge) => (
+                  <li
+                    key={badge.id}
+                    className="flex flex-col items-center text-center"
+                  >
+                    <div className="relative mx-auto aspect-square w-full max-w-[5.5rem]">
+                      <Image
+                        src={badge.image}
+                        alt={badge.title}
+                        fill
+                        className="object-contain"
+                        sizes="88px"
+                      />
+                    </div>
+                    <p className="mt-2 line-clamp-2 text-[10px] font-medium leading-snug text-ink sm:text-[11px]">
+                      {badge.title}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="section-tight border-b border-line bg-paper">
-        <div className="shell">
-          <RmaBadgeStrip />
+      {/* 4. Reviews and testimonials — major trust block */}
+      <section className="section overflow-hidden bg-paper">
+        <div data-reveal className="shell">
+          <div className="grid gap-8 md:grid-cols-[1fr_auto] md:items-start md:gap-12">
+            <div>
+              <h2 className="display text-4xl md:text-5xl">
+                Trusted by North Shore clients
+              </h2>
+              <p className="mt-3 max-w-xl text-ink-soft">
+                Independent feedback invited after every transaction — positive
+                or negative.
+              </p>
+              <div className="mt-6 flex flex-wrap items-center gap-4">
+                <a
+                  href={settings?.rateMyAgentUrl || RATE_MY_AGENT_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-block transition-opacity hover:opacity-80"
+                >
+                  <Image
+                    src="/brand/rma/logo-stacked.svg"
+                    alt="RateMyAgent"
+                    width={128}
+                    height={74}
+                    className="h-7 w-auto md:h-8"
+                  />
+                </a>
+                <a
+                  href={settings?.rateMyAgentUrl || RATE_MY_AGENT_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn btn-primary !min-h-9 !px-4 !py-1.5 text-[13px]"
+                >
+                  View all verified reviews
+                </a>
+              </div>
+            </div>
+
+            <div className="flex items-stretch gap-8 sm:gap-10">
+              <div className="flex w-[7.75rem] flex-col sm:w-[8.5rem]">
+                <p className="display text-5xl leading-none tabular-nums md:text-6xl">
+                  {AGENT_STATS.rmaRating}
+                </p>
+                <p
+                  className="mt-2 flex h-5 items-center text-[0.95rem] leading-none tracking-[0.18em] text-rw-yellow"
+                  aria-label="5 star average"
+                >
+                  ★★★★★
+                </p>
+                <p className="mt-1.5 text-xs text-muted">Overall rating</p>
+              </div>
+              <div className="w-px shrink-0 self-stretch bg-line" aria-hidden />
+              <div className="flex w-[7.75rem] flex-col sm:w-[8.5rem]">
+                <p className="display text-5xl leading-none tabular-nums md:text-6xl">
+                  {AGENT_STATS.rmaReviewCountLabel}
+                </p>
+                <div
+                  className="mt-2 flex h-5 items-center gap-[0.22em] text-rw-yellow"
+                  aria-hidden
+                >
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <MessageSquare
+                      key={index}
+                      className="h-[0.95rem] w-[0.95rem] fill-current stroke-[1.5]"
+                    />
+                  ))}
+                </div>
+                <p className="mt-1.5 text-xs text-muted">Verified reviews</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-10 md:mt-12">
+          <HorizontalSlider
+            label="Client testimonials"
+            slideClassName="w-[min(86vw,26rem)] md:w-[min(42vw,28rem)]"
+          >
+            {FEATURED_REVIEWS.map((review) => (
+              <figure
+                key={review.name}
+                className="flex h-full min-h-[240px] flex-col bg-mist p-6 md:min-h-[260px] md:p-7"
+              >
+                <div
+                  className="mb-4 text-[12px] tracking-[0.18em] text-rw-yellow"
+                  aria-label="5 star review"
+                >
+                  ★★★★★
+                </div>
+                <blockquote className="text-[15px] leading-relaxed text-ink">
+                  “{review.quote}”
+                </blockquote>
+                <figcaption className="mt-auto pt-6">
+                  <p className="text-sm font-medium">{review.name}</p>
+                  <p className="mt-0.5 text-xs text-muted">{review.property}</p>
+                </figcaption>
+              </figure>
+            ))}
+          </HorizontalSlider>
         </div>
       </section>
 
-      <section className="section overflow-hidden bg-paper">
-        <div data-reveal className="shell mb-8 md:mb-10">
-          <div className="flex flex-wrap items-end justify-between gap-6">
+      {/* 5. Interactive map of past sales */}
+      <SalesMapPromo pinCount={mappedSales} />
+
+      {/* 6. Latest blogs / market updates */}
+      <section className="section bg-paper">
+        <div className="shell">
+          <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
             <div>
-              <p className="eyebrow">Client reviews</p>
+              <p className="eyebrow">Insights</p>
               <h2 className="display mt-2 text-4xl md:text-5xl">
-                Reviews that carry weight
+                Market updates
               </h2>
               <p className="mt-3 max-w-2xl text-ink-soft">
-                Hear from North Shore sellers and buyers who’ve worked with Drew
-                — clear advice, strong negotiation, and results that stick.
+                Local North Shore context — what has sold, where activity sits,
+                and how that informs your next move.
               </p>
             </div>
-            <a
-              href={settings?.rateMyAgentUrl || RATE_MY_AGENT_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="btn btn-primary"
-            >
-              Read more reviews
-            </a>
           </div>
-        </div>
 
-        <HorizontalSlider
-          label="Client reviews"
-          slideClassName="w-[min(88vw,28rem)] md:w-[min(48vw,32rem)]"
-        >
-          {FEATURED_REVIEWS.map((review) => (
-            <figure
-              key={review.name}
-              className="flex h-full min-h-[280px] flex-col bg-mist p-7 md:min-h-[300px] md:p-9"
-            >
-              <div
-                className="mb-5 text-[13px] tracking-[0.18em] text-rw-yellow"
-                aria-label="5 star review"
+          {blogPosts.length > 0 ? (
+            <div className="grid gap-6 md:grid-cols-3">
+              {blogPosts.map((post) => (
+                <Link
+                  key={post.slug}
+                  href={`/${post.slug}`}
+                  className="group block"
+                >
+                  <div className="relative aspect-[16/10] overflow-hidden bg-mist">
+                    {post.coverImageUrl ? (
+                      <Image
+                        src={post.coverImageUrl}
+                        alt=""
+                        fill
+                        className="object-cover transition duration-500 group-hover:scale-[1.02]"
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                      />
+                    ) : null}
+                  </div>
+                  <p className="mt-4 text-[15px] font-medium leading-snug tracking-tight">
+                    {post.title}
+                  </p>
+                  {post.summary ? (
+                    <p className="mt-2 line-clamp-2 text-sm text-ink-soft">
+                      {post.summary}
+                    </p>
+                  ) : null}
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-3">
+              <Link
+                href="/map"
+                className="block border border-line bg-mist px-6 py-8 transition hover:border-ink/30"
               >
-                ★★★★★
-              </div>
-              <blockquote className="text-[15px] leading-relaxed text-ink md:text-base">
-                “{review.quote}”
-              </blockquote>
-              <figcaption className="mt-auto pt-8">
-                <p className="font-medium">{review.name}</p>
-                <p className="mt-0.5 text-sm text-muted">{review.property}</p>
-              </figcaption>
-            </figure>
-          ))}
-        </HorizontalSlider>
+                <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted">
+                  Sales map
+                </p>
+                <p className="mt-3 text-lg font-medium tracking-tight">
+                  See recent sales near you
+                </p>
+                <p className="mt-2 text-sm text-ink-soft">
+                  Explore sold prices and activity across the Shore.
+                </p>
+              </Link>
+              <Link
+                href="/sold"
+                className="block border border-line bg-mist px-6 py-8 transition hover:border-ink/30"
+              >
+                <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted">
+                  Sold archive
+                </p>
+                <p className="mt-3 text-lg font-medium tracking-tight">
+                  Browse the full track record
+                </p>
+                <p className="mt-2 text-sm text-ink-soft">
+                  Property pages preserved for proof and local context.
+                </p>
+              </Link>
+              <Link
+                href="/appraisal"
+                className="block border border-line bg-mist px-6 py-8 transition hover:border-ink/30"
+              >
+                <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted">
+                  Local briefing
+                </p>
+                <p className="mt-3 text-lg font-medium tracking-tight">
+                  Ask for a market update
+                </p>
+                <p className="mt-2 text-sm text-ink-soft">
+                  Get clear advice on your suburb before you decide.
+                </p>
+              </Link>
+            </div>
+          )}
+        </div>
       </section>
 
+      {/* 7. Current listings */}
       {currentListings.length > 0 && (
         <section className="section overflow-hidden bg-paper">
           <div className="shell mb-8 md:mb-10">
@@ -200,87 +490,23 @@ export default async function HomePage() {
         </section>
       )}
 
-      {team.length > 0 && (
-        <section className="section bg-mist">
-          <div className="shell">
-            <div className="mb-12 flex flex-wrap items-end justify-between gap-6">
-              <div>
-                <p className="eyebrow">Under Drew’s umbrella</p>
-                <h2 className="display mt-2 text-4xl md:text-5xl">The team</h2>
-                <p className="mt-3 max-w-2xl text-ink-soft">
-                  A focused group of Ray White Mairangi Bay agents working with
-                  Drew — so every client gets specialist attention and a proven
-                  process.
-                </p>
-              </div>
-              <Link href="/team" className="btn btn-secondary">
-                Meet the team
-              </Link>
-            </div>
-            <TeamGrid members={team} compact />
-          </div>
-        </section>
-      )}
-
-      <SalesMapPromo pinCount={mappedSales} />
-
-      <section className="section overflow-hidden bg-paper">
-        <div className="shell mb-8 md:mb-10">
-          <div className="flex flex-wrap items-end justify-between gap-6">
-            <div>
-              <p className="eyebrow">Track record</p>
-              <h2 className="display mt-2 text-4xl md:text-5xl">
-                Sold on the North Shore
-              </h2>
-              <p className="mt-3 text-ink-soft">
-                {listingCount} sold properties across the Shore.
-              </p>
-            </div>
-            <Link href="/sold" className="btn btn-secondary">
-              View all sold
-            </Link>
-          </div>
-        </div>
-
-        <HorizontalSlider
-          label="Sold properties"
-          slideClassName="w-[min(82vw,22rem)] md:w-[min(38vw,26rem)]"
-        >
-          {featured.map((listing) => (
-            <ListingCard
-              key={listing.id}
-              slug={listing.slug}
-              title={listing.title}
-              address={listing.address}
-              suburb={listing.suburb}
-              coverImageUrl={listing.coverImageUrl}
-              soldPriceCents={listing.soldPriceCents}
-              soldDate={listing.soldDate}
-              bedrooms={listing.bedrooms}
-              bathrooms={listing.bathrooms}
-              agents={agentsForCard(listing)}
-            />
-          ))}
-        </HorizontalSlider>
-      </section>
-
-      <section className="section bg-mist">
-        <div className="shell max-w-2xl text-center md:mx-auto md:text-center">
-          <p className="eyebrow">Work with an Elite agent</p>
+      {/* 8. Closing contact / appraisal CTA */}
+      <section className="section bg-paper">
+        <div className="shell max-w-2xl text-center md:mx-auto">
+          <p className="eyebrow">Next step</p>
           <h2 className="display mt-2 text-4xl md:text-5xl">
-            Straight shooter. Local to the bone. Results first.
+            Ready to talk about your property?
           </h2>
           <p className="prose-site mx-auto mt-4">
-            Having spent his life on Auckland’s North Shore, Drew brings genuine
-            community knowledge — and the negotiation experience of hundreds of
-            real transactions.
+            Start with an appraisal, or get in touch directly — clear advice,
+            local context, and no pressure.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link href="/about" className="btn btn-primary">
-              About Drew
+            <Link href="/appraisal" className="btn btn-primary">
+              Get an Appraisal
             </Link>
-            <Link href="/appraisal" className="btn btn-secondary">
-              Get an appraisal
+            <Link href="/contact" className="btn btn-secondary">
+              Contact Drew
             </Link>
           </div>
         </div>

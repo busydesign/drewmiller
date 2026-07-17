@@ -1,9 +1,14 @@
 @import "tailwindcss";
 @import "./fonts.css";
 
-/* Tesla-inspired minimal system — yellow kept as the single CTA accent */
+/*
+  Ray White–aligned system:
+  - Official yellow (#FFE512) for primary CTAs and key accents only
+  - Near-black ink on white / light grey for body surfaces
+  - Drew Miller leads as the local brand; Ray White affiliation stays visible in chrome
+*/
 :root {
-  --rw-yellow: #ffe512;
+  --rw-yellow: #ffe512; /* Ray White yellow */
   --rw-yellow-deep: #f0d600;
   --ink: #171a20;
   --ink-soft: #5c5e62;
@@ -393,6 +398,23 @@ a {
   width: 100%;
   font: inherit;
   z-index: 0;
+  touch-action: pan-x pan-y;
+}
+
+.map-shell .leaflet-control-zoom a {
+  width: 34px !important;
+  height: 34px !important;
+  line-height: 34px !important;
+  font-size: 16px !important;
+}
+
+.map-shell .leaflet-popup-content-wrapper {
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
+}
+
+.map-shell .leaflet-popup-content {
+  margin: 12px 14px;
 }
 
 .rw-yellow-bar {

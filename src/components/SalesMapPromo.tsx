@@ -45,7 +45,7 @@ export function SalesMapPromo({ pinCount }: Props) {
       : "Previous sales mapped across the Shore";
 
   return (
-    <section className="bg-[#e8e8ea]">
+    <section className="bg-paper">
       <div className="shell grid items-center gap-12 py-20 md:grid-cols-2 md:gap-16 md:py-28">
         <div className="max-w-xl">
           <p className="eyebrow">Sales map</p>
@@ -53,8 +53,9 @@ export function SalesMapPromo({ pinCount }: Props) {
             See what sold near you
           </h2>
           <p className="mt-4 text-base text-ink-soft md:text-lg">
-            {label}. Browse homes on the market, see recent sold prices nearby,
-            and understand what properties are achieving on your street.
+            {label}. Yellow pins show completed sales across the Shore — so you
+            can see the volume and spread of Drew’s results, then switch to
+            homes currently for sale.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/map" className="btn btn-primary">

@@ -11,6 +11,10 @@ export const AGENT_STATS = {
   salesVolumeLabel: "$205M+",
   experienceLabel: "10+ years",
   rmaRatingLabel: "5.0 · 140 reviews",
+  /** RateMyAgent overall score */
+  rmaRating: "5.0",
+  rmaReviewCount: 140,
+  rmaReviewCountLabel: "140+",
 } as const;
 
 /** Kept for later — not shown on home while RMA badges lead. */
@@ -91,4 +95,7 @@ export const FEATURED_REVIEWS = [
   },
 ] as const;
 
-export const HERO_IMAGE = "/brand/hero-team.png";
+export const HERO_IMAGE = "/brand/hero-team.jpg";
+
+/** Solo portrait for Meet Drew / about intro */
+export const DREW_PORTRAIT = "/brand/drew-miller-portrait.jpg";

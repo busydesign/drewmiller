@@ -86,7 +86,7 @@ export function HorizontalSlider({
           type="button"
           aria-label="Previous"
           onClick={() => scrollByDir(-1)}
-          className="absolute left-[max(0.75rem,calc(var(--shell-gutter)-0.25rem))] top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-sm bg-mist text-ink md:grid"
+          className="absolute left-[max(0.75rem,calc(var(--shell-gutter)-0.25rem))] top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-sm bg-white text-ink shadow-[0_2px_10px_rgb(0_0_0_/0.08)] md:grid"
         >
           <Chevron dir="left" />
         </button>
@@ -96,7 +96,7 @@ export function HorizontalSlider({
           type="button"
           aria-label="Next"
           onClick={() => scrollByDir(1)}
-          className="absolute right-3 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-sm bg-mist text-ink md:grid lg:right-5"
+          className="absolute right-3 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-sm bg-white text-ink shadow-[0_2px_10px_rgb(0_0_0_/0.08)] md:grid lg:right-5"
         >
           <Chevron dir="right" />
         </button>

@@ -50,18 +50,26 @@ export function NearbySalesFinder() {
   }
 
   return (
-    <div className="border border-line bg-paper p-5">
+    <div className="border border-line bg-paper p-5 md:p-6">
       <p className="eyebrow">Your address</p>
-      <h2 className="display mt-2 text-3xl">Nearby previous sales</h2>
+      <h2 className="display mt-2 text-2xl md:text-3xl">Nearby sold results</h2>
+      <p className="mt-2 text-sm text-ink-soft">
+        Search a street to see completed sales within about 3 km.
+      </p>
       <form onSubmit={onSubmit} className="mt-5 space-y-3">
         <input
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           placeholder="e.g. 12 Beach Road, Mairangi Bay"
-          className="w-full border border-line bg-white px-3 py-3 text-sm outline-none ring-sea focus:ring-2"
+          className="w-full border border-line bg-white px-3 py-3 text-base outline-none ring-sea focus:ring-2 md:text-sm"
           required
+          autoComplete="street-address"
         />
-        <button type="submit" className="btn btn-primary w-full" disabled={loading}>
+        <button
+          type="submit"
+          className="btn btn-primary w-full min-h-11"
+          disabled={loading}
+        >
           {loading ? "Searching…" : "Show nearby sales"}
         </button>
       </form>

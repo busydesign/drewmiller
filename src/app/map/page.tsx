@@ -1,108 +1,18 @@
 import type { Metadata } from "next";
-import { SalesMap, type MapPin } from "@/components/SalesMap";
+import { SalesMap } from "@/components/SalesMap";
 import { NearbySalesFinder } from "@/components/NearbySalesFinder";
-import { prisma } from "@/lib/db";
+import { getSalesMapPins } from "@/lib/map-pins";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Sales map",
   description:
-    "Explore Drew Miller’s current and previous North Shore sales on an interactive map. Enter your address to see nearby results.",
+    "Explore Drew Miller’s sold North Shore properties on an interactive map — and see what is currently for sale nearby.",
 };
 
 export default async function MapPage() {
-  const [sales, soldListings, currentListings] = await Promise.all([
-    prisma.sale.findMany({
-      where: {
-        latitude: { not: null },
-        longitude: { not: null },
-      },
-      orderBy: { soldDate: "desc" },
-    }),
-    prisma.listing.findMany({
-      where: {
-        published: true,
-        status: "SOLD",
-        latitude: { not: null },
-        longitude: { not: null },
-      },
-      select: {
-        id: true,
-        slug: true,
-        address: true,
-        suburb: true,
-        latitude: true,
-        longitude: true,
-        soldPriceCents: true,
-        soldDate: true,
-      },
-    }),
-    prisma.listing.findMany({
-      where: {
-        published: true,
-        status: { in: ["FOR_SALE", "UNDER_OFFER", "COMING_SOON"] },
-        latitude: { not: null },
-        longitude: { not: null },
-      },
-      select: {
-        id: true,
-        slug: true,
-        address: true,
-        suburb: true,
-        latitude: true,
-        longitude: true,
-        listedPriceLabel: true,
-      },
-    }),
-  ]);
-
-  // Merge Sale rows + sold Listings (dedupe by rounded lat/lng + address)
-  const soldPins = new Map<string, MapPin>();
-
-  for (const sale of sales) {
-    const key = `${sale.address.toLowerCase()}|${sale.latitude?.toFixed(5)}|${sale.longitude?.toFixed(5)}`;
-    soldPins.set(key, {
-      id: `sale-${sale.id}`,
-      address: sale.address,
-      suburb: sale.suburb,
-      latitude: sale.latitude as number,
-      longitude: sale.longitude as number,
-      soldPriceCents: sale.soldPriceCents,
-      soldDate: sale.soldDate?.toISOString() ?? null,
-      listingSlug: null,
-      kind: "sold",
-    });
-  }
-
-  for (const listing of soldListings) {
-    const key = `${listing.address.toLowerCase()}|${listing.latitude?.toFixed(5)}|${listing.longitude?.toFixed(5)}`;
-    const existing = soldPins.get(key);
-    soldPins.set(key, {
-      id: existing?.id || `listing-${listing.id}`,
-      address: listing.address,
-      suburb: listing.suburb,
-      latitude: listing.latitude as number,
-      longitude: listing.longitude as number,
-      soldPriceCents: listing.soldPriceCents ?? existing?.soldPriceCents,
-      soldDate:
-        listing.soldDate?.toISOString() ?? existing?.soldDate ?? null,
-      listingSlug: listing.slug,
-      kind: "sold",
-    });
-  }
-
-  const sold = [...soldPins.values()];
-  const current: MapPin[] = currentListings.map((listing) => ({
-    id: `current-${listing.id}`,
-    address: listing.address,
-    suburb: listing.suburb,
-    latitude: listing.latitude as number,
-    longitude: listing.longitude as number,
-    priceLabel: listing.listedPriceLabel,
-    listingSlug: listing.slug,
-    kind: "current" as const,
-  }));
+  const { sold, current, suburbs } = await getSalesMapPins();
 
   return (
     <section className="section">
@@ -110,20 +20,37 @@ export default async function MapPage() {
         <p className="eyebrow">Interactive</p>
         <h1 className="display mt-2 text-5xl md:text-6xl">Sales map</h1>
         <p className="mt-4 max-w-2xl text-ink-soft">
-          Explore homes for sale across the North Shore, or see what nearby
-          properties have sold for. Search an address to understand pricing in
-          the streets that matter to you.
+          {sold.length.toLocaleString("en-NZ")} completed sales mapped across
+          Auckland’s North Shore. Yellow pins are sold. Switch layers to see
+          homes currently for sale, or search an address for nearby results.
         </p>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-[0.9fr_1.4fr]">
-          <NearbySalesFinder />
-          <SalesMap sold={sold} current={current} />
+        {suburbs.length > 0 && (
+          <div className="mt-6 flex flex-wrap gap-2">
+            {suburbs.map((row) => (
+              <span
+                key={row.suburb}
+                className="inline-flex items-center gap-1.5 rounded-full border border-line bg-mist px-3 py-1.5 text-xs text-ink-soft"
+              >
+                <span className="font-medium text-ink">{row.suburb}</span>
+                <span aria-hidden>·</span>
+                <span>{row.count}</span>
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,0.85fr)] lg:items-start">
+          <SalesMap sold={sold} current={current} defaultMode="sold" />
+          <div className="lg:sticky lg:top-24">
+            <NearbySalesFinder />
+            <p className="mt-4 text-sm text-ink-soft">
+              {sold.length} sold · {current.length} for sale on the map.
+              Unsuccessful or inaccurate records are excluded as they are
+              reviewed.
+            </p>
+          </div>
         </div>
-
-        <p className="mt-4 text-sm text-ink-soft">
-          {current.length} homes for sale · {sold.length} sold properties on the
-          map.
-        </p>
       </div>
     </section>
   );
