@@ -11,6 +11,7 @@ const links = [
   { href: "/sold", label: "Sold" },
   { href: "/team", label: "Team" },
   { href: "/map", label: "Sales map" },
+  { href: "/blog", label: "Market updates" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
@@ -45,13 +46,11 @@ export function SiteHeader() {
     <>
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-2xl supports-[backdrop-filter]:bg-white/70">
         <div className="shell flex h-14 items-center justify-between gap-4 md:h-16 md:gap-6">
-          <Link href="/" className="min-w-0">
-            <span className="block text-[15px] font-medium tracking-tight md:text-base">
-              {BRAND.agentName}
-            </span>
-            <span className="mt-0.5 block truncate text-[11px] font-normal uppercase tracking-[0.06em] text-muted">
-              {BRAND.agencyName}
-            </span>
+          <Link
+            href="/"
+            className="min-w-0 text-base font-medium tracking-tight md:text-lg"
+          >
+            {BRAND.agentName}
           </Link>
 
           <nav className="hidden items-center gap-7 text-[13px] font-medium text-ink-soft lg:flex">
@@ -115,13 +114,12 @@ export function SiteHeader() {
         aria-hidden={!open}
       >
         <div className="shell flex h-14 items-center justify-between gap-4 md:h-16">
-          <Link href="/" onClick={() => setOpen(false)} className="min-w-0">
-            <span className="block text-[15px] font-medium tracking-tight">
-              {BRAND.agentName}
-            </span>
-            <span className="mt-0.5 block truncate text-[11px] font-normal uppercase tracking-[0.06em] text-muted">
-              {BRAND.agencyName}
-            </span>
+          <Link
+            href="/"
+            onClick={() => setOpen(false)}
+            className="min-w-0 text-base font-medium tracking-tight"
+          >
+            {BRAND.agentName}
           </Link>
           <button
             type="button"

@@ -10,6 +10,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/listings",
     "/sold",
     "/map",
+    "/blog",
     "/appraisal",
     "/about",
     "/contact",
@@ -24,13 +25,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return staticRoutes;
   }
 
-  const [listings, pages] = await Promise.all([
+  const [listings, pages, blogPosts] = await Promise.all([
     prisma.listing.findMany({
       where: { published: true },
       select: { slug: true, updatedAt: true },
     }),
     prisma.contentPage.findMany({
-      where: { published: true },
+      where: { published: true, NOT: { kind: "BLOG" } },
+      select: { slug: true, updatedAt: true },
+    }),
+    prisma.contentPage.findMany({
+      where: {
+        published: true,
+        kind: "BLOG",
+        NOT: { slug: { contains: "/" } },
+      },
       select: { slug: true, updatedAt: true },
     }),
   ]);
@@ -42,6 +51,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: listing.updatedAt,
       changeFrequency: "monthly" as const,
       priority: 0.6,
+    })),
+    ...blogPosts.map((post) => ({
+      url: siteUrl(`/blog/${post.slug}`),
+      lastModified: post.updatedAt,
+      changeFrequency: "monthly" as const,
+      priority: 0.55,
     })),
     ...pages
       .filter((p) => !p.slug.includes("/"))

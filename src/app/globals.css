@@ -278,6 +278,13 @@ a {
   transform: translate3d(0, 22px, 0);
 }
 
+/* Always show skipped surfaces (admin, etc.) even before JS runs */
+main section[data-reveal-skip],
+[data-reveal-skip] {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
 .reveal-enabled .reveal-ready,
 .reveal-enabled [data-reveal-stagger].reveal-ready > * {
   opacity: 0;

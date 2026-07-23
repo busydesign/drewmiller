@@ -52,6 +52,11 @@ export function SiteFooter() {
               </Link>
             </li>
             <li>
+              <Link href="/blog" className="transition hover:text-ink">
+                Market updates
+              </Link>
+            </li>
+            <li>
               <Link href="/appraisal" className="transition hover:text-ink">
                 Request appraisal
               </Link>
@@ -84,7 +89,7 @@ export function SiteFooter() {
                 href={`mailto:${BRAND.email}`}
                 className="transition hover:text-ink"
               >
-                {BRAND.email}
+                {BRAND.emailName} · {BRAND.email}
               </a>
             </li>
             <li>

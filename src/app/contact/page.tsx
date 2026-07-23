@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
+import { ContactForm } from "@/components/ContactForm";
 import { HERO_IMAGE, RAY_WHITE_PROFILE_URL } from "@/lib/agent-proof";
+import { BRAND } from "@/lib/brand";
 import { prisma } from "@/lib/db";
 
 export const metadata: Metadata = {
@@ -10,10 +12,6 @@ export const metadata: Metadata = {
   description:
     "Contact Drew Miller for buying, selling, or an appraisal on Auckland’s North Shore.",
 };
-
-const FALLBACK_PHONE = "021 963 654";
-const FALLBACK_EMAIL = "drew.miller@raywhite.com";
-const FALLBACK_AGENCY = "Ray White Mairangi Bay & Milford";
 
 export default async function ContactPage() {
   const [settings, drew] = await Promise.all([
@@ -24,9 +22,9 @@ export default async function ContactPage() {
     }),
   ]);
 
-  const phone = settings?.phone || drew?.phone || FALLBACK_PHONE;
-  const email = settings?.email || drew?.email || FALLBACK_EMAIL;
-  const agency = settings?.agencyName || FALLBACK_AGENCY;
+  const phone = settings?.phone || drew?.phone || BRAND.phoneDisplay;
+  const email = BRAND.email;
+  const agency = settings?.agencyName || BRAND.agencyName;
   const phoneHref = phone.replace(/\s+/g, "");
 
   const methods = [
@@ -39,7 +37,7 @@ export default async function ContactPage() {
     },
     {
       label: "Email",
-      value: email,
+      value: `${BRAND.emailName} · ${email}`,
       href: `mailto:${email}`,
       icon: Mail,
       hint: "We usually reply the same day",
@@ -111,10 +109,8 @@ export default async function ContactPage() {
                 </a>
               );
             })}
-          </div>
 
-          <div className="flex flex-col justify-between rounded-xl bg-mist p-7 md:p-9">
-            <div>
+            <div className="rounded-xl bg-mist p-7 md:p-9">
               <p className="eyebrow">Next step</p>
               <h2 className="display mt-2 text-3xl md:text-4xl">
                 Prefer a clear starting point?
@@ -123,30 +119,18 @@ export default async function ContactPage() {
                 Share your address and we’ll come back with local sold context,
                 timing advice, and a straight recommendation — no pressure.
               </p>
-              <ul className="mt-6 space-y-2.5 text-sm text-ink-soft">
-                <li className="flex gap-2">
-                  <span className="text-muted">—</span>
-                  Direct line to Drew and the team
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-muted">—</span>
-                  Recent sales around your street
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-muted">—</span>
-                  Clear next steps for buying or selling
-                </li>
-              </ul>
-            </div>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/appraisal" className="btn btn-primary">
-                Request appraisal
-              </Link>
-              <Link href="/map" className="btn btn-secondary">
-                Open sales map
-              </Link>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link href="/appraisal" className="btn btn-primary">
+                  Request appraisal
+                </Link>
+                <Link href="/map" className="btn btn-secondary">
+                  Open sales map
+                </Link>
+              </div>
             </div>
           </div>
+
+          <ContactForm />
         </div>
       </section>
     </>

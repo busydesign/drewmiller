@@ -32,7 +32,11 @@ export default async function HomePage() {
       }),
       getSalesMapPins(),
       prisma.contentPage.findMany({
-        where: { published: true, kind: "BLOG" },
+        where: {
+          published: true,
+          kind: "BLOG",
+          NOT: { slug: { contains: "/" } },
+        },
         orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
         take: 3,
         select: {
@@ -174,7 +178,7 @@ export default async function HomePage() {
                 />
               </div>
 
-              <dl className="mt-6 grid min-w-0 grid-cols-3 gap-2 md:mt-8 md:gap-4">
+              <dl className="mt-6 grid min-w-0 grid-cols-1 gap-5 md:mt-8 md:grid-cols-3 md:gap-4">
                 {[
                   {
                     label: "Successful sales",
@@ -190,10 +194,10 @@ export default async function HomePage() {
                   },
                 ].map((item) => (
                   <div key={item.label} className="min-w-0">
-                    <dt className="text-[10px] leading-snug text-muted sm:text-[11px]">
+                    <dt className="text-[11px] leading-snug text-muted">
                       {item.label}
                     </dt>
-                    <dd className="display mt-1 truncate text-xl leading-none sm:text-2xl md:text-3xl">
+                    <dd className="display mt-1 text-4xl leading-none md:text-3xl">
                       {item.value}
                     </dd>
                   </div>
@@ -370,6 +374,9 @@ export default async function HomePage() {
                 and how that informs your next move.
               </p>
             </div>
+            <Link href="/blog" className="btn btn-secondary">
+              View all posts
+            </Link>
           </div>
 
           {blogPosts.length > 0 ? (
@@ -377,7 +384,7 @@ export default async function HomePage() {
               {blogPosts.map((post) => (
                 <Link
                   key={post.slug}
-                  href={`/${post.slug}`}
+                  href={`/blog/${post.slug}`}
                   className="group block"
                 >
                   <div className="relative aspect-[16/10] overflow-hidden bg-mist">

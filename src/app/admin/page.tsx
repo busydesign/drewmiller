@@ -7,12 +7,12 @@ export default async function AdminPage() {
   const session = await getAdminSession();
   if (!session) {
     return (
-      <section className="section">
+      <section className="section" data-reveal-skip>
         <div className="shell max-w-md">
           <p className="eyebrow">Agent access</p>
           <h1 className="display mt-2 text-4xl">Live editing</h1>
           <p className="mt-3 text-sm text-ink-soft">
-            Sign in to import, refresh, or delete listings from Ray White URLs.
+            Sign in to manage blog posts and import listings from Ray White URLs.
           </p>
           <div className="mt-6">
             <AdminLoginForm />
@@ -22,7 +22,7 @@ export default async function AdminPage() {
     );
   }
 
-  const [listings, leads, settings] = await Promise.all([
+  const [listings, leads, blogPosts, settings] = await Promise.all([
     prisma.listing.findMany({
       orderBy: [{ status: "asc" }, { updatedAt: "desc" }],
       select: {
@@ -39,20 +39,43 @@ export default async function AdminPage() {
       },
     }),
     prisma.appraisalLead.findMany({ orderBy: { createdAt: "desc" }, take: 10 }),
+    prisma.contentPage.findMany({
+      where: { kind: "BLOG" },
+      orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        summary: true,
+        coverImageUrl: true,
+        published: true,
+        publishedAt: true,
+        updatedAt: true,
+      },
+    }),
     prisma.siteSettings.findUnique({ where: { id: "default" } }),
   ]);
 
   return (
-    <AdminDashboard
-      listings={listings.map((l) => ({
-        ...l,
-        updatedAt: l.updatedAt.toISOString(),
-      }))}
-      leads={leads.map((l) => ({
-        ...l,
-        createdAt: l.createdAt.toISOString(),
-      }))}
-      settings={settings}
-    />
+    <div data-reveal-skip>
+      <AdminDashboard
+        listings={listings.map((l) => ({
+          ...l,
+          updatedAt: l.updatedAt.toISOString(),
+        }))}
+        leads={leads.map((l) => ({
+          ...l,
+          createdAt: l.createdAt.toISOString(),
+        }))}
+        blogPosts={blogPosts.map((post) => ({
+          ...post,
+          bodyHtml: null,
+          bodyMarkdown: null,
+          publishedAt: post.publishedAt?.toISOString() ?? null,
+          updatedAt: post.updatedAt.toISOString(),
+        }))}
+        settings={settings}
+      />
+    </div>
   );
 }

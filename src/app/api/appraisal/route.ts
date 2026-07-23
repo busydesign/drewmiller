@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { notifyAppraisalLead } from "@/lib/email";
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
@@ -20,5 +21,17 @@ export async function POST(req: Request) {
     data: { name, email, phone, address, message, source: "website" },
   });
 
-  return NextResponse.json({ ok: true, id: lead.id });
+  const mail = await notifyAppraisalLead({
+    name,
+    email,
+    phone,
+    address,
+    message,
+  });
+
+  return NextResponse.json({
+    ok: true,
+    id: lead.id,
+    emailed: mail.sent,
+  });
 }

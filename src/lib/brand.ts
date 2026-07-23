@@ -20,6 +20,8 @@ export const BRAND = {
   phoneDisplay: "021 963 654",
   phoneHref: "021963654",
   email: "drew.miller@raywhite.com",
+  /** Display name for mailto / outbound notifications */
+  emailName: "Drew Miller",
 } as const;
 
 export const BRAND_DISCLAIMER =

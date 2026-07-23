@@ -17,12 +17,13 @@ export function ScrollReveal() {
   useEffect(() => {
     const root = document.documentElement;
     root.classList.add("reveal-enabled");
+    root.classList.remove("reveal-pending");
 
-    // Keep admin tooling static
+    // Keep admin tooling static — never leave it stuck at opacity 0
     if (window.location.pathname.startsWith("/admin")) {
-      document
-        .querySelectorAll<HTMLElement>(SELECTOR)
-        .forEach(markRevealed);
+      document.querySelectorAll<HTMLElement>(SELECTOR).forEach((el) => {
+        el.classList.add("reveal-ready", "is-revealed");
+      });
       return;
     }
 
@@ -30,7 +31,9 @@ export function ScrollReveal() {
       Array.from(document.querySelectorAll<HTMLElement>(SELECTOR));
 
     if (prefersReducedMotion()) {
-      nodes().forEach(markRevealed);
+      nodes().forEach((el) => {
+        el.classList.add("reveal-ready", "is-revealed");
+      });
       return;
     }
 

@@ -9,6 +9,7 @@ import {
   RAY_WHITE_ELITE_BADGE,
   RAY_WHITE_PROFILE_URL,
 } from "@/lib/agent-proof";
+import { BRAND } from "@/lib/brand";
 import { prisma } from "@/lib/db";
 
 export const metadata: Metadata = {
@@ -16,9 +17,6 @@ export const metadata: Metadata = {
   description:
     "Ray White Elite agent Drew Miller — 175+ North Shore sales, $205M+, Top 100 NZ agent.",
 };
-
-const FALLBACK_PHONE = "021 963 654";
-const FALLBACK_EMAIL = "drew.miller@raywhite.com";
 
 export default async function AboutPage() {
   const [settings, drew] = await Promise.all([
@@ -29,8 +27,8 @@ export default async function AboutPage() {
     }),
   ]);
 
-  const phone = settings?.phone || drew?.phone || FALLBACK_PHONE;
-  const email = settings?.email || drew?.email || FALLBACK_EMAIL;
+  const phone = settings?.phone || drew?.phone || BRAND.phoneDisplay;
+  const email = BRAND.email;
   const phoneHref = phone.replace(/\s+/g, "");
 
   return (

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { ListingFeatures } from "@/components/ListingFeatures";
 import { ListingGallery } from "@/components/ListingGallery";
@@ -327,6 +327,9 @@ export default async function SlugPage({ params }: Props) {
 
   const page = await prisma.contentPage.findUnique({ where: { slug } });
   if (!page || !page.published) notFound();
+  if (page.kind === "BLOG") {
+    redirect(`/blog/${page.slug}`);
+  }
   const pageHtml = cleanMigratedBodyHtml(page.bodyHtml);
 
   return (
