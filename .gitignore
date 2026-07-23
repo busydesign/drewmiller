@@ -43,6 +43,12 @@ yarn-error.log*
 # Local-only symlink to Squarespace image export
 /public/migration-images
 
+# Uploaded blog / admin media (keep folder via .gitkeep)
+/public/uploads/**
+!/public/uploads/
+!/public/uploads/*/
+!/public/uploads/**/.gitkeep
+
 # vercel
 .vercel
 

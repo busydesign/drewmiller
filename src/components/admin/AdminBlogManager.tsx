@@ -60,6 +60,7 @@ export function AdminBlogManager({ posts }: Props) {
   const router = useRouter();
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [slugTouched, setSlugTouched] = useState(false);
@@ -142,6 +143,28 @@ export function AdminBlogManager({ posts }: Props) {
       setMessage(err instanceof Error ? err.message : "Failed");
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function uploadCover(file: File | null) {
+    if (!file) return;
+    setUploading(true);
+    setMessage(null);
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Upload failed");
+      setForm((prev) => ({ ...prev, coverImageUrl: data.url as string }));
+      setMessage(`Uploaded cover · ${data.filename}`);
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploading(false);
     }
   }
 
@@ -232,17 +255,52 @@ export function AdminBlogManager({ posts }: Props) {
               }
             />
           </label>
-          <label className="block text-sm">
-            <span className="text-muted">Cover image URL</span>
-            <input
-              className="mt-1 w-full border border-line bg-white px-3 py-2.5"
-              value={form.coverImageUrl}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, coverImageUrl: e.target.value }))
-              }
-              placeholder="https://…"
-            />
-          </label>
+          <div className="block text-sm">
+            <span className="text-muted">Cover image</span>
+            <div className="mt-1 flex flex-col gap-3 sm:flex-row sm:items-start">
+              <div className="min-w-0 flex-1 space-y-2">
+                <input
+                  className="w-full border border-line bg-white px-3 py-2.5"
+                  value={form.coverImageUrl}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      coverImageUrl: e.target.value,
+                    }))
+                  }
+                  placeholder="https://… or upload below"
+                />
+                <label className="inline-flex cursor-pointer items-center">
+                  <span className="btn btn-secondary !min-h-10">
+                    {uploading ? "Uploading…" : "Upload image"}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    className="sr-only"
+                    disabled={busy || uploading}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      e.target.value = "";
+                      void uploadCover(file);
+                    }}
+                  />
+                </label>
+                <p className="text-xs text-muted">
+                  JPG, PNG, WebP or GIF · max 8MB
+                </p>
+              </div>
+              {form.coverImageUrl ? (
+                <div className="relative h-28 w-full shrink-0 overflow-hidden border border-line bg-white sm:w-44">
+                  <img
+                    src={form.coverImageUrl}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              ) : null}
+            </div>
+          </div>
           <label className="block text-sm">
             <span className="text-muted">Body (HTML or plain text)</span>
             <textarea
@@ -282,7 +340,7 @@ export function AdminBlogManager({ posts }: Props) {
               type="button"
               className="btn btn-primary"
               onClick={save}
-              disabled={busy}
+              disabled={busy || uploading}
             >
               {busy ? "Saving…" : "Save post"}
             </button>
@@ -290,7 +348,7 @@ export function AdminBlogManager({ posts }: Props) {
               type="button"
               className="btn btn-secondary"
               onClick={cancelEdit}
-              disabled={busy}
+              disabled={busy || uploading}
             >
               Cancel
             </button>
