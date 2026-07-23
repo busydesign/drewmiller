@@ -1,3 +1,4 @@
+import nodemailer from "nodemailer";
 import { BRAND } from "@/lib/brand";
 
 /** Primary inbox for website enquiries */
@@ -14,21 +15,54 @@ type SendEmailInput = {
   replyTo?: string;
 };
 
-/**
- * Send transactional mail via Resend.
- * Requires RESEND_API_KEY. Optional EMAIL_FROM (verified domain in production).
- */
-export async function sendNotificationEmail(
+function smtpConfigured(): boolean {
+  return Boolean(
+    process.env.SMTP_HOST?.trim() &&
+      process.env.SMTP_USER?.trim() &&
+      process.env.SMTP_PASS?.trim()
+  );
+}
+
+async function sendViaSmtp(
   input: SendEmailInput
 ): Promise<{ sent: boolean; id?: string; error?: string }> {
-  const apiKey = process.env.RESEND_API_KEY?.trim();
-  if (!apiKey) {
-    console.warn(
-      "[email] RESEND_API_KEY is not set — enquiry saved but email not sent"
-    );
-    return { sent: false, error: "RESEND_API_KEY not configured" };
-  }
+  const host = process.env.SMTP_HOST!.trim();
+  const port = Number(process.env.SMTP_PORT || "587");
+  const user = process.env.SMTP_USER!.trim();
+  const pass = process.env.SMTP_PASS!.trim();
+  const from =
+    process.env.EMAIL_FROM?.trim() ||
+    `${BRAND.agentName} website <${user}>`;
 
+  try {
+    const transporter = nodemailer.createTransport({
+      host,
+      port,
+      secure: port === 465,
+      auth: { user, pass },
+    });
+
+    const info = await transporter.sendMail({
+      from,
+      to: `${NOTIFY_TO_NAME} <${NOTIFY_TO}>`,
+      replyTo: input.replyTo || undefined,
+      subject: input.subject,
+      html: input.html,
+      text: input.text,
+    });
+
+    return { sent: true, id: info.messageId };
+  } catch (err) {
+    const error = err instanceof Error ? err.message : "SMTP send failed";
+    console.error("[email] SMTP failed:", error);
+    return { sent: false, error };
+  }
+}
+
+async function sendViaResend(
+  input: SendEmailInput
+): Promise<{ sent: boolean; id?: string; error?: string }> {
+  const apiKey = process.env.RESEND_API_KEY!.trim();
   const from =
     process.env.EMAIL_FROM?.trim() ||
     `${BRAND.agentName} website <onboarding@resend.dev>`;
@@ -68,6 +102,30 @@ export async function sendNotificationEmail(
     console.error("[email]", error);
     return { sent: false, error };
   }
+}
+
+/**
+ * Send transactional mail via Resend or SMTP.
+ * Prefer RESEND_API_KEY; otherwise SMTP_HOST + SMTP_USER + SMTP_PASS.
+ */
+export async function sendNotificationEmail(
+  input: SendEmailInput
+): Promise<{ sent: boolean; id?: string; error?: string }> {
+  if (process.env.RESEND_API_KEY?.trim()) {
+    return sendViaResend(input);
+  }
+
+  if (smtpConfigured()) {
+    return sendViaSmtp(input);
+  }
+
+  console.warn(
+    "[email] No RESEND_API_KEY or SMTP_* configured — enquiry not emailed"
+  );
+  return {
+    sent: false,
+    error: "Email not configured (set RESEND_API_KEY or SMTP_HOST/USER/PASS)",
+  };
 }
 
 function escapeHtml(value: string): string {

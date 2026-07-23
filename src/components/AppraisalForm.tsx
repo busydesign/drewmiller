@@ -10,9 +10,10 @@ export function AppraisalForm() {
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const formEl = e.currentTarget;
     setStatus("loading");
     setError(null);
-    const form = new FormData(e.currentTarget);
+    const form = new FormData(formEl);
     try {
       const res = await fetch("/api/appraisal", {
         method: "POST",
@@ -27,8 +28,8 @@ export function AppraisalForm() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not send request");
+      formEl.reset();
       setStatus("done");
-      e.currentTarget.reset();
     } catch (err) {
       setStatus("error");
       setError(err instanceof Error ? err.message : "Something went wrong");

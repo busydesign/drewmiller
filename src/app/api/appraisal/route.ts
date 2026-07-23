@@ -29,9 +29,22 @@ export async function POST(req: Request) {
     message,
   });
 
+  if (!mail.sent) {
+    return NextResponse.json(
+      {
+        ok: true,
+        id: lead.id,
+        emailed: false,
+        error:
+          "Your request was saved, but we couldn’t email Drew just now. Please also call or text if it’s urgent.",
+      },
+      { status: 502 }
+    );
+  }
+
   return NextResponse.json({
     ok: true,
     id: lead.id,
-    emailed: mail.sent,
+    emailed: true,
   });
 }
