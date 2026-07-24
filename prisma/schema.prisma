@@ -13,6 +13,7 @@ enum ListingStatus {
   SOLD
   COMING_SOON
   ARCHIVED
+  WITHDRAWN
 }
 
 enum PageKind {

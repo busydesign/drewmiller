@@ -43,19 +43,23 @@ export function ListingCard({
   agent,
   agents,
 }: Props) {
+  const isWithdrawn = status === "WITHDRAWN" || status === "ARCHIVED";
   const isForSale =
-    status === "FOR_SALE" ||
-    status === "UNDER_OFFER" ||
-    status === "COMING_SOON";
+    !isWithdrawn &&
+    (status === "FOR_SALE" ||
+      status === "UNDER_OFFER" ||
+      status === "COMING_SOON");
   const price = formatPriceCents(soldPriceCents);
   const date = formatDate(soldDate);
-  const badge = isForSale
-    ? status === "UNDER_OFFER"
-      ? "Under offer"
-      : status === "COMING_SOON"
-        ? "Coming soon"
-        : "For sale"
-    : "Sold";
+  const badge = isWithdrawn
+    ? "Withdrawn"
+    : isForSale
+      ? status === "UNDER_OFFER"
+        ? "Under offer"
+        : status === "COMING_SOON"
+          ? "Coming soon"
+          : "For sale"
+      : "Sold";
 
   const displayAgents =
     agents && agents.length > 0 ? agents : agent ? [agent] : [];

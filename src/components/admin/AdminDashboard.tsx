@@ -7,6 +7,13 @@ import {
   AdminBlogManager,
   type BlogPostRow,
 } from "@/components/admin/AdminBlogManager";
+import {
+  ADMIN_LISTING_STATUSES,
+  isCurrentListingStatus,
+  listingStatusLabel,
+  toAdminListingStatus,
+  type AdminListingStatus,
+} from "@/lib/listing-status";
 
 type ListingAgentRow = {
   id: string;
@@ -119,15 +126,19 @@ export function AdminDashboard({
   const [url, setUrl] = useState("");
   const [preview, setPreview] = useState<Record<string, unknown> | null>(null);
   const [importAgentIds, setImportAgentIds] = useState<string[]>([]);
+  const [importStatus, setImportStatus] =
+    useState<AdminListingStatus>("FOR_SALE");
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"ALL" | "FOR_SALE" | "SOLD">(
-    "ALL"
-  );
+  const [statusFilter, setStatusFilter] = useState<
+    "ALL" | AdminListingStatus
+  >("ALL");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editUrl, setEditUrl] = useState("");
   const [editAgentIds, setEditAgentIds] = useState<string[]>([]);
+  const [editStatus, setEditStatus] =
+    useState<AdminListingStatus>("FOR_SALE");
   const [rowBusyId, setRowBusyId] = useState<string | null>(null);
   const [salesCountLabel, setSalesCountLabel] = useState(
     settings?.salesCountLabel || "175+"
@@ -152,11 +163,7 @@ export function AdminDashboard({
     const q = query.trim().toLowerCase();
     return listings.filter((listing) => {
       if (statusFilter !== "ALL") {
-        const isCurrent = ["FOR_SALE", "UNDER_OFFER", "COMING_SOON"].includes(
-          listing.status
-        );
-        if (statusFilter === "FOR_SALE" && !isCurrent) return false;
-        if (statusFilter === "SOLD" && listing.status !== "SOLD") return false;
+        if (toAdminListingStatus(listing.status) !== statusFilter) return false;
       }
       if (!q) return true;
       const hay = [
@@ -218,6 +225,9 @@ export function AdminDashboard({
       if (!res.ok) throw new Error(data.error || "Import preview failed");
       setPreview(data.preview);
       setImportAgentIds(agentIdsFromPreview(data.preview, agents));
+      setImportStatus(
+        data.preview?.status === "SOLD" ? "SOLD" : "FOR_SALE"
+      );
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Failed");
       setPreview(null);
@@ -231,6 +241,7 @@ export function AdminDashboard({
     listingId?: string;
     url?: string;
     agentIds?: string[];
+    status?: AdminListingStatus;
   }) {
     const publishUrl = (opts?.url ?? url).trim();
     if (!publishUrl) return;
@@ -242,6 +253,16 @@ export function AdminDashboard({
     const agentIds =
       opts?.agentIds ??
       (opts?.listingId ? editAgentIds : importAgentIds);
+    const status =
+      opts?.status ??
+      (opts?.listingId
+        ? editingId === opts.listingId
+          ? editStatus
+          : toAdminListingStatus(
+              listings.find((l) => l.id === opts.listingId)?.status ||
+                "FOR_SALE"
+            )
+        : importStatus);
 
     try {
       const res = await fetch("/api/admin/listing-import", {
@@ -252,6 +273,7 @@ export function AdminDashboard({
           mode: "publish",
           listingId: opts?.listingId || undefined,
           agentIds: agentIds.length > 0 ? agentIds : undefined,
+          status,
         }),
       });
       const data = await res.json();
@@ -268,6 +290,7 @@ export function AdminDashboard({
         setPreview(null);
         setUrl("");
         setImportAgentIds([]);
+        setImportStatus("FOR_SALE");
       }
       setEditingId(null);
       setEditUrl("");
@@ -281,21 +304,26 @@ export function AdminDashboard({
     }
   }
 
-  async function saveListingAgents(listingId: string) {
+  async function saveListingDetails(listingId: string) {
     setRowBusyId(listingId);
     setMessage(null);
     try {
       const res = await fetch(`/api/admin/listings/${listingId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ agentIds: editAgentIds }),
+        body: JSON.stringify({
+          agentIds: editAgentIds,
+          status: editStatus,
+        }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Could not update agents");
+      if (!res.ok) throw new Error(data.error || "Could not update listing");
       const names = Array.isArray(data.agents)
         ? data.agents.map((a: { name: string }) => a.name).join(" · ")
         : "none";
-      setMessage(`Agents updated · ${names}`);
+      setMessage(
+        `Saved · ${listingStatusLabel(editStatus)} · agents: ${names}`
+      );
       setEditingId(null);
       setEditAgentIds([]);
       router.refresh();
@@ -341,7 +369,35 @@ export function AdminDashboard({
         ? listing.agents.map((a) => a.id)
         : agents.filter((a) => a.isLead).map((a) => a.id)
     );
+    setEditStatus(toAdminListingStatus(listing.status));
     setMessage(null);
+  }
+
+  function statusSelect(
+    name: string,
+    value: AdminListingStatus,
+    onChange: (next: AdminListingStatus) => void
+  ) {
+    return (
+      <div className="flex flex-wrap gap-2">
+        {ADMIN_LISTING_STATUSES.map((status) => (
+          <label
+            key={status}
+            className={`flex cursor-pointer items-center gap-2 border px-3 py-2 text-sm ${
+              value === status ? "border-ink bg-mist" : "border-line bg-paper"
+            }`}
+          >
+            <input
+              type="radio"
+              name={name}
+              checked={value === status}
+              onChange={() => onChange(status)}
+            />
+            <span>{listingStatusLabel(status)}</span>
+          </label>
+        ))}
+      </div>
+    );
   }
 
   async function logout() {
@@ -506,6 +562,14 @@ export function AdminDashboard({
               </div>
               <div className="mt-4">
                 <p className="text-xs font-bold uppercase tracking-[0.12em] text-ink-soft">
+                  Status
+                </p>
+                <div className="mt-2">
+                  {statusSelect("import-status", importStatus, setImportStatus)}
+                </div>
+              </div>
+              <div className="mt-4">
+                <p className="text-xs font-bold uppercase tracking-[0.12em] text-ink-soft">
                   Agents on this listing
                 </p>
                 <p className="mt-1 text-xs text-ink-soft">
@@ -602,8 +666,9 @@ export function AdminDashboard({
                   {(
                     [
                       ["ALL", "All"],
-                      ["FOR_SALE", "Current"],
+                      ["FOR_SALE", "For Sale"],
                       ["SOLD", "Sold"],
+                      ["WITHDRAWN", "Withdrawn"],
                     ] as const
                   ).map(([value, label]) => (
                     <button
@@ -641,11 +706,8 @@ export function AdminDashboard({
                 {filtered.map((listing) => {
                   const rowBusy = rowBusyId === listing.id;
                   const isEditing = editingId === listing.id;
-                  const isCurrent = [
-                    "FOR_SALE",
-                    "UNDER_OFFER",
-                    "COMING_SOON",
-                  ].includes(listing.status);
+                  const isCurrent = isCurrentListingStatus(listing.status);
+                  const statusLabel = listingStatusLabel(listing.status);
                   return (
                     <li key={listing.id} className="px-4 py-4">
                       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -662,10 +724,13 @@ export function AdminDashboard({
                               className={`px-1.5 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] ${
                                 isCurrent
                                   ? "bg-rw-yellow text-ink"
-                                  : "bg-ink text-white"
+                                  : listing.status === "WITHDRAWN" ||
+                                      listing.status === "ARCHIVED"
+                                    ? "bg-ink-soft text-white"
+                                    : "bg-ink text-white"
                               }`}
                             >
-                              {listing.status.replace("_", " ")}
+                              {statusLabel}
                             </span>
                             {!listing.published ? (
                               <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-soft">
@@ -739,6 +804,18 @@ export function AdminDashboard({
                         <div className="mt-3 space-y-4 border border-line bg-mist p-3">
                           <div>
                             <p className="text-xs font-bold uppercase tracking-[0.12em] text-ink-soft">
+                              Status
+                            </p>
+                            <div className="mt-2">
+                              {statusSelect(
+                                `edit-status-${listing.id}`,
+                                editStatus,
+                                setEditStatus
+                              )}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold uppercase tracking-[0.12em] text-ink-soft">
                               Agents
                             </p>
                             <p className="mt-1 text-xs text-ink-soft">
@@ -783,9 +860,9 @@ export function AdminDashboard({
                               type="button"
                               className="btn btn-secondary mt-3 !px-3 !py-2 text-xs"
                               disabled={rowBusy}
-                              onClick={() => saveListingAgents(listing.id)}
+                              onClick={() => saveListingDetails(listing.id)}
                             >
-                              {rowBusy ? "Saving…" : "Save agents"}
+                              {rowBusy ? "Saving…" : "Save status & agents"}
                             </button>
                           </div>
 
@@ -816,6 +893,7 @@ export function AdminDashboard({
                                     listingId: listing.id,
                                     url: editUrl,
                                     agentIds: editAgentIds,
+                                    status: editStatus,
                                   })
                                 }
                               >

@@ -72,10 +72,13 @@ export default async function SlugPage({ params }: Props) {
   });
 
   if (listing) {
+    const isWithdrawn =
+      listing.status === "WITHDRAWN" || listing.status === "ARCHIVED";
     const isForSale =
-      listing.status === "FOR_SALE" ||
-      listing.status === "UNDER_OFFER" ||
-      listing.status === "COMING_SOON";
+      !isWithdrawn &&
+      (listing.status === "FOR_SALE" ||
+        listing.status === "UNDER_OFFER" ||
+        listing.status === "COMING_SOON");
     const price = formatPriceCents(listing.soldPriceCents);
     const date = formatDate(listing.soldDate);
     const cleanedSummary = stripImportFooter(listing.summary);
@@ -149,7 +152,11 @@ export default async function SlugPage({ params }: Props) {
           <div className="shell relative flex min-h-[48vh] items-end py-12">
             <div>
               <p className="eyebrow !text-white/65">
-                {isForSale ? "Current listing" : "Sold property"}
+                {isWithdrawn
+                  ? "Withdrawn"
+                  : isForSale
+                    ? "Current listing"
+                    : "Sold property"}
               </p>
               <h1 className="display mt-3 max-w-4xl text-4xl md:text-6xl">
                 {listing.address}
@@ -168,8 +175,10 @@ export default async function SlugPage({ params }: Props) {
                     {listing.listedPriceLabel}
                   </span>
                 )}
-                {!isForSale && price && <span>{price}</span>}
-                {!isForSale && date && <span>Sold {date}</span>}
+                {!isForSale && !isWithdrawn && price && <span>{price}</span>}
+                {!isForSale && !isWithdrawn && date && (
+                  <span>Sold {date}</span>
+                )}
                 {listing.bedrooms != null && listing.bedrooms > 0 && (
                   <span>{listing.bedrooms} bed</span>
                 )}

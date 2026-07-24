@@ -3,6 +3,11 @@ import { getAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { fetchListingPreview } from "@/lib/listing-import/fetch-listing-preview";
 import { geocodePropertyAddress } from "@/lib/geocode";
+import {
+  parseAdminListingStatus,
+  toAdminListingStatus,
+  type AdminListingStatus,
+} from "@/lib/listing-status";
 import { slugify } from "@/lib/slugify";
 
 function suburbFromAddress(address: string): string | null {
@@ -32,6 +37,7 @@ export async function POST(req: Request) {
         .map((id: unknown) => String(id || "").trim())
         .filter((id: string): id is string => Boolean(id))
     : null;
+  const statusOverride = parseAdminListingStatus(body.status);
 
   if (!url) {
     return NextResponse.json({ error: "URL required" }, { status: 400 });
@@ -49,7 +55,6 @@ export async function POST(req: Request) {
     }
 
     const address = preview.propertyAddress || preview.title;
-    const isForSale = preview.status !== "SOLD";
     const externalId = preview.hints.externalId?.trim() || null;
 
     // Prefer explicit listing target (admin "refresh this page"), else match
@@ -76,6 +81,21 @@ export async function POST(req: Request) {
         { status: 404 }
       );
     }
+
+    const status: AdminListingStatus =
+      statusOverride ??
+      (existing
+        ? toAdminListingStatus(existing.status)
+        : preview.status === "SOLD"
+          ? "SOLD"
+          : "FOR_SALE");
+    const isForSale = status === "FOR_SALE";
+    const statusLabel =
+      status === "SOLD"
+        ? "Sold"
+        : status === "WITHDRAWN"
+          ? "Withdrawn"
+          : "For sale";
 
     let slug = existing?.slug;
     if (!slug) {
@@ -187,9 +207,7 @@ export async function POST(req: Request) {
       title: address,
       address,
       suburb,
-      status: (preview.status === "SOLD" ? "SOLD" : "FOR_SALE") as
-        | "SOLD"
-        | "FOR_SALE",
+      status,
       summary,
       bodyMarkdown: preview.bodyMarkdown || preview.description,
       bodyHtml: preview.bodyHtml || null,
@@ -206,7 +224,7 @@ export async function POST(req: Request) {
       leadAgentId: leadAgent?.id ?? null,
       latitude: geo?.latitude ?? null,
       longitude: geo?.longitude ?? null,
-      seoTitle: `${address} | ${isForSale ? "For sale" : "Sold"} with Drew Miller`,
+      seoTitle: `${address} | ${statusLabel} with Drew Miller`,
       seoDescription: (preview.bodyMarkdown || preview.description || "")
         .slice(0, 160)
         .replace(/\s+/g, " "),
