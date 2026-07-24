@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   title: "Sold properties",
   description:
     "Browse Drew Miller’s sold property pages across Auckland’s North Shore — preserved for SEO and proof of results.",
+  alternates: { canonical: "/sold" },
 };
 
 export default async function SoldPage() {

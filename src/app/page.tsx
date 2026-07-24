@@ -1,9 +1,11 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { MessageSquare } from "lucide-react";
 import { BlogCover } from "@/components/BlogCover";
 import { HeroBanner } from "@/components/HeroBanner";
 import { HorizontalSlider } from "@/components/HorizontalSlider";
+import { JsonLd } from "@/components/JsonLd";
 import { ListingCard } from "@/components/ListingCard";
 import { SalesMapPromo } from "@/components/SalesMapPromo";
 import { TeamGrid } from "@/components/TeamGrid";
@@ -21,6 +23,11 @@ import {
   agentsForCard,
   getCurrentTeamListings,
 } from "@/lib/listings-query";
+import { realEstateAgentJsonLd } from "@/lib/structured-data";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 export default async function HomePage() {
   const [settings, currentListings, team, mapPins, blogPosts] =
@@ -53,6 +60,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <JsonLd data={realEstateAgentJsonLd()} />
       {/* 1. Hero + appraisal CTA */}
       <HeroBanner>
         <div className="text-white [text-shadow:0_2px_24px_rgb(0_0_0_/_0.35)]">
@@ -401,7 +409,7 @@ export default async function HomePage() {
                   href={`/blog/${post.slug}`}
                   className="group block"
                 >
-                  <BlogCover src={post.coverImageUrl} />
+                  <BlogCover src={post.coverImageUrl} alt={post.title} />
                   <p className="mt-4 text-[15px] font-medium leading-snug tracking-tight">
                     {post.title}
                   </p>

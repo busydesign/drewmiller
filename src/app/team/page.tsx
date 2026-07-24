@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "The team",
   description:
     "Meet Drew Miller’s Ray White Mairangi Bay team — North Shore specialists working under Drew’s umbrella.",
+  alternates: { canonical: "/team" },
 };
 
 export default async function TeamPage() {

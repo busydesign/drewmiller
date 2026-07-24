@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { AgentAvatar } from "@/components/AgentAvatar";
+import { JsonLd } from "@/components/JsonLd";
 import { ListingFeatures } from "@/components/ListingFeatures";
 import { ListingGallery } from "@/components/ListingGallery";
 import { ListingLocationMap } from "@/components/ListingLocationMap";
@@ -16,6 +17,7 @@ import {
   isJunkMigrationImage,
   pickCoverImage,
 } from "@/lib/listing-images";
+import { listingJsonLd } from "@/lib/structured-data";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -113,11 +115,30 @@ export default async function SlugPage({ params }: Props) {
 
     return (
       <article>
+        <JsonLd
+          data={listingJsonLd({
+            slug: listing.slug,
+            address: listing.address,
+            suburb: listing.suburb,
+            city: listing.city,
+            summary: listing.summary,
+            coverImageUrl,
+            listedPriceLabel: listing.listedPriceLabel,
+            soldPriceCents: listing.soldPriceCents,
+            bedrooms: listing.bedrooms,
+            bathrooms: listing.bathrooms,
+            parking: listing.parking,
+            latitude: listing.latitude,
+            longitude: listing.longitude,
+            status: listing.status,
+            propertyType: listing.propertyType,
+          })}
+        />
         <section className="relative min-h-[48vh] overflow-hidden bg-ink text-white">
           {coverImageUrl && (
             <Image
               src={coverImageUrl}
-              alt={listing.title}
+              alt={listing.address || listing.title}
               fill
               className="object-cover"
               unoptimized

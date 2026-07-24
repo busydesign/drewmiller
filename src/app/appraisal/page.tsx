@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "Request an appraisal",
   description:
     "Request a North Shore property appraisal from Drew Miller. Clear next steps, recent nearby sales, and no pressure.",
+  alternates: { canonical: "/appraisal" },
 };
 
 export default function AppraisalPage() {

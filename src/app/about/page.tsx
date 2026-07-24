@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { JsonLd } from "@/components/JsonLd";
 import { RmaBadgeStrip } from "@/components/RmaBadgeStrip";
 import {
   AGENT_STATS,
@@ -11,11 +12,13 @@ import {
 } from "@/lib/agent-proof";
 import { BRAND } from "@/lib/brand";
 import { prisma } from "@/lib/db";
+import { realEstateAgentJsonLd } from "@/lib/structured-data";
 
 export const metadata: Metadata = {
   title: "About Drew Miller",
   description:
     "Ray White Elite agent Drew Miller — 175+ North Shore sales, $205M+, Top 100 NZ agent.",
+  alternates: { canonical: "/about" },
 };
 
 export default async function AboutPage() {
@@ -33,11 +36,12 @@ export default async function AboutPage() {
 
   return (
     <section className="section">
+      <JsonLd data={realEstateAgentJsonLd()} />
       <div className="shell grid gap-10 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="relative min-h-[420px] overflow-hidden bg-ink">
           <Image
             src={HERO_IMAGE}
-            alt="Drew Miller"
+            alt="Drew Miller and the Ray White North Shore team"
             fill
             className="object-cover object-top"
             sizes="(max-width: 1024px) 100vw, 40vw"

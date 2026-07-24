@@ -17,6 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description:
       agent.bioMarkdown?.slice(0, 160) ||
       `${agent.name} — Ray White Mairangi Bay, part of Drew Miller’s team.`,
+    alternates: { canonical: `/team/${agent.slug}` },
   };
 }
 

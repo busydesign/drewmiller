@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { trackMetaEvent } from "@/lib/meta-pixel";
 
 export function AppraisalForm() {
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">(
@@ -28,6 +29,7 @@ export function AppraisalForm() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not send request");
+      trackMetaEvent("Lead", { content_name: "Appraisal request" });
       formEl.reset();
       setStatus("done");
     } catch (err) {

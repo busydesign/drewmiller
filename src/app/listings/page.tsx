@@ -13,6 +13,7 @@ export const metadata: Metadata = {
   title: "Current listings",
   description:
     "Browse current North Shore properties for sale with Drew Miller and his Ray White Mairangi Bay team.",
+  alternates: { canonical: "/listings" },
 };
 
 export default async function CurrentListingsPage({

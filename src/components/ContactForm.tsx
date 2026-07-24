@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { trackMetaEvent } from "@/lib/meta-pixel";
 
 export function ContactForm() {
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">(
@@ -27,6 +28,7 @@ export function ContactForm() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not send message");
+      trackMetaEvent("Contact", { content_name: "Contact form" });
       formEl.reset();
       setStatus("done");
     } catch (err) {

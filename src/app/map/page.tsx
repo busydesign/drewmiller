@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: "Sales map",
   description:
     "Explore Drew Miller’s sold North Shore properties on an interactive map — and see what is currently for sale nearby.",
+  alternates: { canonical: "/map" },
 };
 
 export default async function MapPage() {

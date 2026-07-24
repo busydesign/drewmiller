@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   title: "Contact",
   description:
     "Contact Drew Miller for buying, selling, or an appraisal on Auckland’s North Shore.",
+  alternates: { canonical: "/contact" },
 };
 
 export default async function ContactPage() {

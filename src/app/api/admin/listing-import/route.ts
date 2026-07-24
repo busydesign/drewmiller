@@ -3,14 +3,7 @@ import { getAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { fetchListingPreview } from "@/lib/listing-import/fetch-listing-preview";
 import { geocodePropertyAddress } from "@/lib/geocode";
-
-function slugify(input: string): string {
-  return input
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
-    .slice(0, 80);
-}
+import { slugify } from "@/lib/slugify";
 
 function suburbFromAddress(address: string): string | null {
   const parts = address.split(",").map((p) => p.trim()).filter(Boolean);

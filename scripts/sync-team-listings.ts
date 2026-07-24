@@ -5,6 +5,7 @@
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import { decodeHtmlEntities } from "../src/lib/listing-import/decode-html";
+import { slugify } from "../src/lib/slugify";
 import { TEAM_MEMBER_IDS } from "../src/lib/team";
 
 const prisma = new PrismaClient();
@@ -47,14 +48,6 @@ type ApiListing = {
   agents?: ApiAgent[];
   links?: Array<{ url?: string; code?: string }>;
 };
-
-function slugify(input: string) {
-  return input
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
-    .slice(0, 80);
-}
 
 function stripTags(html: string) {
   return decodeHtmlEntities(

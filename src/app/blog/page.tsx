@@ -68,7 +68,7 @@ export default async function BlogIndexPage() {
               return (
                 <li key={post.slug}>
                   <Link href={`/blog/${post.slug}`} className="group block">
-                    <BlogCover src={post.coverImageUrl} />
+                    <BlogCover src={post.coverImageUrl} alt={post.title} />
                     {date ? (
                       <p className="mt-4 text-[11px] font-medium uppercase tracking-[0.14em] text-muted">
                         {date}
