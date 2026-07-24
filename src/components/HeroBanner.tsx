@@ -26,9 +26,9 @@ export function HeroBanner({
         sizes="100vw"
       />
 
-      {/* Strong left/bottom scrim so brand type stays readable on the photo */}
-      <div className="absolute inset-0 bg-gradient-to-r from-ink/80 via-ink/45 to-ink/10 md:via-ink/35 md:to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/20 to-transparent" />
+      {/* Left/bottom scrim so brand type stays readable on the photo */}
+      <div className="absolute inset-0 bg-gradient-to-r from-ink/55 via-ink/25 to-transparent md:via-ink/15" />
+      <div className="absolute inset-0 bg-gradient-to-t from-ink/45 via-transparent to-transparent" />
 
       <div className="shell relative flex min-h-[78vh] items-end py-16 md:min-h-[86vh] md:py-24">
         <div className="w-full max-w-3xl">{children}</div>
