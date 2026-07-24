@@ -80,21 +80,46 @@ export function SalesMapPromo({ pinCount }: Props) {
               className="object-cover transition duration-500 group-hover:scale-[1.02]"
               sizes="(max-width: 768px) 100vw, 540px"
             />
-            <PromoPin className="left-[28%] top-[34%]" fill="#171a20" />
+            <PromoPin className="left-[18%] top-[42%]" fill="#171a20" />
             <PromoPin
-              className="left-[46%] top-[48%]"
+              className="left-[28%] top-[34%]"
               fill="#ffe512"
-              delay="180ms"
+              delay="120ms"
             />
             <PromoPin
-              className="left-[62%] top-[30%]"
+              className="left-[38%] top-[52%]"
               fill="#171a20"
+              delay="240ms"
+            />
+            <PromoPin
+              className="left-[46%] top-[38%]"
+              fill="#ffe512"
               delay="360ms"
             />
             <PromoPin
-              className="left-[72%] top-[58%]"
+              className="left-[54%] top-[58%]"
+              fill="#171a20"
+              delay="480ms"
+            />
+            <PromoPin
+              className="left-[62%] top-[30%]"
               fill="#ffe512"
-              delay="520ms"
+              delay="600ms"
+            />
+            <PromoPin
+              className="left-[70%] top-[46%]"
+              fill="#171a20"
+              delay="720ms"
+            />
+            <PromoPin
+              className="left-[78%] top-[36%]"
+              fill="#ffe512"
+              delay="840ms"
+            />
+            <PromoPin
+              className="left-[84%] top-[54%]"
+              fill="#171a20"
+              delay="960ms"
             />
           </div>
           <div className="flex items-center justify-between gap-3 px-5 py-4">
