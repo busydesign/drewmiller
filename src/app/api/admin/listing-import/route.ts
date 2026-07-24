@@ -34,10 +34,10 @@ export async function POST(req: Request) {
     typeof body.listingId === "string" && body.listingId.trim()
       ? body.listingId.trim()
       : null;
-  const agentIdsOverride = Array.isArray(body.agentIds)
+  const agentIdsOverride: string[] | null = Array.isArray(body.agentIds)
     ? body.agentIds
         .map((id: unknown) => String(id || "").trim())
-        .filter(Boolean)
+        .filter((id: string): id is string => Boolean(id))
     : null;
 
   if (!url) {
