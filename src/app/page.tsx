@@ -65,7 +65,7 @@ export default async function HomePage() {
           <p className="display fade-up-delay-2 mt-5 max-w-2xl text-2xl font-medium leading-snug tracking-tight text-white md:text-4xl md:leading-[1.15]">
             Elite North Shore agent.
           </p>
-          <p className="fade-up-delay-2 mt-4 text-base leading-relaxed text-white/90 whitespace-nowrap md:text-xl">
+          <p className="fade-up-delay-2 mt-4 whitespace-nowrap text-[13px] leading-relaxed text-white/90 sm:text-base md:text-xl">
             <span className="font-semibold text-white">
               {AGENT_STATS.salesCountLabel} sales
             </span>

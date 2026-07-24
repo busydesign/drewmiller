@@ -22,7 +22,7 @@ export function HeroBanner({
         alt={imageAlt}
         fill
         priority
-        className="object-cover object-[center_45%]"
+        className="object-cover object-[center_60%]"
         sizes="100vw"
       />
 
