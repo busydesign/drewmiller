@@ -31,9 +31,9 @@ export async function PATCH(req: Request, { params }: Params) {
     );
   }
 
-  const agentIds = body.agentIds
+  const agentIds: string[] = body.agentIds
     .map((value: unknown) => String(value || "").trim())
-    .filter(Boolean);
+    .filter((id: string): id is string => Boolean(id));
 
   const agents =
     agentIds.length > 0
