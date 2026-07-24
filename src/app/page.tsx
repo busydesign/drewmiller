@@ -55,19 +55,32 @@ export default async function HomePage() {
     <>
       {/* 1. Hero + appraisal CTA */}
       <HeroBanner>
-        <div className="text-white">
-          <p className="eyebrow fade-up !text-white/65">
+        <div className="text-white [text-shadow:0_2px_24px_rgb(0_0_0_/_0.35)]">
+          <p className="eyebrow fade-up !text-rw-yellow">
             Ray White Mairangi Bay &amp; Milford
           </p>
-          <h1 className="display fade-up-delay mt-4 text-5xl font-medium md:text-7xl">
+          <h1 className="display fade-up-delay mt-3 text-6xl font-medium tracking-[-0.04em] md:text-8xl md:leading-[0.95]">
             Drew Miller
           </h1>
-          <p className="fade-up-delay-2 mt-5 max-w-xl text-base text-white/75 md:text-lg">
-            Elite North Shore agent. {AGENT_STATS.salesCountLabel} sales,{" "}
-            {AGENT_STATS.salesVolumeLabel} — built on clear advice and results
-            people talk about.
+          <p className="display fade-up-delay-2 mt-5 max-w-2xl text-2xl font-medium leading-snug tracking-tight text-white md:text-4xl md:leading-[1.15]">
+            Elite North Shore agent.
           </p>
-          <div className="fade-up-delay-2 mt-8 flex flex-wrap gap-3">
+          <p className="fade-up-delay-2 mt-4 max-w-xl text-base leading-relaxed text-white/90 md:text-xl">
+            <span className="font-semibold text-white">
+              {AGENT_STATS.salesCountLabel} sales
+            </span>
+            <span className="mx-2 text-rw-yellow" aria-hidden>
+              ·
+            </span>
+            <span className="font-semibold text-white">
+              {AGENT_STATS.salesVolumeLabel}
+            </span>
+            <span className="text-white/80">
+              {" "}
+              — clear advice and results people talk about.
+            </span>
+          </p>
+          <div className="fade-up-delay-2 mt-9 flex flex-wrap gap-3">
             <Link href="/appraisal" className="btn btn-primary">
               Request an appraisal
             </Link>
