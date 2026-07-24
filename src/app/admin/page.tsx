@@ -105,7 +105,22 @@ export default async function AdminPage() {
           publishedAt: post.publishedAt?.toISOString() ?? null,
           updatedAt: post.updatedAt.toISOString(),
         }))}
-        settings={settings}
+        settings={
+          settings
+            ? {
+                siteName: settings.siteName,
+                rateMyAgentUrl: settings.rateMyAgentUrl,
+                salesCountLabel: settings.salesCountLabel,
+                salesVolumeLabel: settings.salesVolumeLabel,
+              }
+            : {
+                siteName: "Drew Miller",
+                rateMyAgentUrl:
+                  "https://www.ratemyagent.co.nz/real-estate-agent/drew-miller-au137/sales/overview",
+                salesCountLabel: "175+",
+                salesVolumeLabel: "$205M+",
+              }
+        }
       />
     </div>
   );

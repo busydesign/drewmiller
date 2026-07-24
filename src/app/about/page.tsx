@@ -4,12 +4,12 @@ import Link from "next/link";
 import { JsonLd } from "@/components/JsonLd";
 import { RmaBadgeStrip } from "@/components/RmaBadgeStrip";
 import {
-  AGENT_STATS,
   HERO_IMAGE,
   RATE_MY_AGENT_URL,
   RAY_WHITE_ELITE_BADGE,
   RAY_WHITE_PROFILE_URL,
 } from "@/lib/agent-proof";
+import { getAgentStats } from "@/lib/agent-stats";
 import { BRAND } from "@/lib/brand";
 import { prisma } from "@/lib/db";
 import { realEstateAgentJsonLd } from "@/lib/structured-data";
@@ -22,12 +22,13 @@ export const metadata: Metadata = {
 };
 
 export default async function AboutPage() {
-  const [settings, drew] = await Promise.all([
+  const [settings, drew, stats] = await Promise.all([
     prisma.siteSettings.findUnique({ where: { id: "default" } }),
     prisma.agent.findFirst({
       where: { isLead: true, published: true },
       select: { phone: true, email: true },
     }),
+    getAgentStats(),
   ]);
 
   const phone = settings?.phone || drew?.phone || BRAND.phoneDisplay;
@@ -58,8 +59,8 @@ export default async function AboutPage() {
           </p>
           <p className="prose-site mt-6">
             With more than a decade in real estate and a proven track record of{" "}
-            {AGENT_STATS.salesCountLabel} successful sales totalling over{" "}
-            {AGENT_STATS.salesVolumeLabel}, Drew has built his reputation on clear
+            {stats.salesCountLabel} successful sales totalling over{" "}
+            {stats.salesVolumeLabel}, Drew has built his reputation on clear
             advice, sharp negotiation, and results. Recognised with Ray White Elite
             status and ranked among New Zealand’s Top 100 agents.
           </p>

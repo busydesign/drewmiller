@@ -51,6 +51,8 @@ type Props = {
   settings: {
     siteName: string;
     rateMyAgentUrl: string;
+    salesCountLabel: string;
+    salesVolumeLabel: string;
   } | null;
 };
 
@@ -96,9 +98,10 @@ function agentIdsFromPreview(
   return lead ? [lead.id] : [];
 }
 
-type TabId = "blog" | "listings" | "leads";
+type TabId = "stats" | "blog" | "listings" | "leads";
 
 const TABS: { id: TabId; label: string }[] = [
+  { id: "stats", label: "Stats" },
   { id: "blog", label: "Blog" },
   { id: "listings", label: "Listings" },
   { id: "leads", label: "Leads" },
@@ -126,6 +129,12 @@ export function AdminDashboard({
   const [editUrl, setEditUrl] = useState("");
   const [editAgentIds, setEditAgentIds] = useState<string[]>([]);
   const [rowBusyId, setRowBusyId] = useState<string | null>(null);
+  const [salesCountLabel, setSalesCountLabel] = useState(
+    settings?.salesCountLabel || "175+"
+  );
+  const [salesVolumeLabel, setSalesVolumeLabel] = useState(
+    settings?.salesVolumeLabel || "$205M+"
+  );
 
   function toggleAgentId(
     ids: string[],
@@ -166,10 +175,35 @@ export function AdminDashboard({
   }, [listings, query, statusFilter]);
 
   const tabCounts: Record<TabId, number> = {
+    stats: 0,
     blog: blogPosts.length,
     listings: listings.length,
     leads: leads.length,
   };
+
+  async function saveStats() {
+    setBusy(true);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ salesCountLabel, salesVolumeLabel }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Could not save stats");
+      setSalesCountLabel(data.salesCountLabel);
+      setSalesVolumeLabel(data.salesVolumeLabel);
+      setMessage(
+        `Stats updated · ${data.salesCountLabel} sales · ${data.salesVolumeLabel}`
+      );
+      router.refresh();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Failed");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function previewImport() {
     setBusy(true);
@@ -353,17 +387,72 @@ export function AdminDashboard({
                 }`}
               >
                 {item.label}
-                <span
-                  className={`text-xs tabular-nums ${
-                    active ? "text-white/70" : "text-muted"
-                  }`}
-                >
-                  {tabCounts[item.id]}
-                </span>
+                {item.id !== "stats" ? (
+                  <span
+                    className={`text-xs tabular-nums ${
+                      active ? "text-white/70" : "text-muted"
+                    }`}
+                  >
+                    {tabCounts[item.id]}
+                  </span>
+                ) : null}
               </button>
             );
           })}
         </div>
+
+        {tab === "stats" ? (
+          <div
+            role="tabpanel"
+            id="admin-panel-stats"
+            aria-labelledby="admin-tab-stats"
+          >
+            <div className="border border-line bg-paper p-6">
+              <p className="eyebrow">Homepage &amp; about</p>
+              <h2 className="display mt-2 text-3xl">Sales figures</h2>
+              <p className="mt-2 max-w-xl text-sm text-ink-soft">
+                These labels appear in the hero and awards section (e.g.{" "}
+                <strong>175+</strong> and <strong>$205M+</strong>). Update when
+                Drew’s totals change — weekly or monthly is fine.
+              </p>
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                <label className="block text-sm">
+                  <span className="text-muted">Sales count label</span>
+                  <input
+                    className="mt-1 w-full border border-line bg-white px-3 py-2.5"
+                    value={salesCountLabel}
+                    onChange={(e) => setSalesCountLabel(e.target.value)}
+                    placeholder="175+"
+                  />
+                </label>
+                <label className="block text-sm">
+                  <span className="text-muted">Sales volume label</span>
+                  <input
+                    className="mt-1 w-full border border-line bg-white px-3 py-2.5"
+                    value={salesVolumeLabel}
+                    onChange={(e) => setSalesVolumeLabel(e.target.value)}
+                    placeholder="$205M+"
+                  />
+                </label>
+              </div>
+              <p className="mt-3 text-xs text-muted">
+                Preview: {salesCountLabel || "—"} sales ·{" "}
+                {salesVolumeLabel || "—"}
+              </p>
+              <button
+                type="button"
+                className="btn btn-primary mt-6"
+                onClick={saveStats}
+                disabled={busy || !salesCountLabel.trim() || !salesVolumeLabel.trim()}
+              >
+                {busy ? "Saving…" : "Save stats"}
+              </button>
+              {message && tab === "stats" ? (
+                <p className="mt-3 text-sm text-sea-deep">{message}</p>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
 
         {tab === "blog" ? (
           <div

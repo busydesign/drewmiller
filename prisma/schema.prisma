@@ -34,6 +34,9 @@ model SiteSettings {
   rateMyAgentUrl     String  @default("https://www.ratemyagent.co.nz/real-estate-agent/drew-miller-au137/sales/overview")
   rmaRatingLabel     String?
   rmaReviewCount     Int?
+  /** Marketing labels shown on home/about, e.g. "175+" / "$205M+" */
+  salesCountLabel    String  @default("175+")
+  salesVolumeLabel   String  @default("$205M+")
   bio                String?
   heroImageUrl       String?
   aboutMarkdown      String?

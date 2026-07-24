@@ -10,13 +10,13 @@ import { ListingCard } from "@/components/ListingCard";
 import { SalesMapPromo } from "@/components/SalesMapPromo";
 import { TeamGrid } from "@/components/TeamGrid";
 import {
-  AGENT_STATS,
   FEATURED_REVIEWS,
   DREW_PORTRAIT,
   RATE_MY_AGENT_URL,
   RAY_WHITE_ELITE_BADGE,
   RMA_AWARD_BADGES,
 } from "@/lib/agent-proof";
+import { getAgentStats } from "@/lib/agent-stats";
 import { prisma } from "@/lib/db";
 import { getSalesMapPins } from "@/lib/map-pins";
 import {
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const [settings, currentListings, team, mapPins, blogPosts] =
+  const [settings, currentListings, team, mapPins, blogPosts, stats] =
     await Promise.all([
       prisma.siteSettings.findUnique({ where: { id: "default" } }),
       getCurrentTeamListings(10),
@@ -55,6 +55,7 @@ export default async function HomePage() {
           publishedAt: true,
         },
       }),
+      getAgentStats(),
     ]);
   const mappedSales = mapPins.sold.length;
 
@@ -75,13 +76,13 @@ export default async function HomePage() {
           </p>
           <p className="fade-up-delay-2 mt-4 whitespace-nowrap text-[13px] leading-relaxed text-white/90 sm:text-base md:text-xl">
             <span className="font-semibold text-white">
-              {AGENT_STATS.salesCountLabel} sales
+              {stats.salesCountLabel} sales
             </span>
             <span className="mx-2 text-rw-yellow" aria-hidden>
               ·
             </span>
             <span className="font-semibold text-white">
-              {AGENT_STATS.salesVolumeLabel}
+              {stats.salesVolumeLabel}
             </span>
             <span className="text-white/80">
               {" "}
@@ -204,15 +205,15 @@ export default async function HomePage() {
                 {[
                   {
                     label: "Successful sales",
-                    value: AGENT_STATS.salesCountLabel,
+                    value: stats.salesCountLabel,
                   },
                   {
                     label: "Sales volume",
-                    value: AGENT_STATS.salesVolumeLabel,
+                    value: stats.salesVolumeLabel,
                   },
                   {
                     label: "Experience",
-                    value: AGENT_STATS.experienceLabel,
+                    value: stats.experienceLabel,
                   },
                 ].map((item) => (
                   <div key={item.label} className="min-w-0">
@@ -318,7 +319,7 @@ export default async function HomePage() {
             <div className="flex items-stretch gap-8 sm:gap-10">
               <div className="flex w-[7.75rem] flex-col sm:w-[8.5rem]">
                 <p className="display text-5xl leading-none tabular-nums md:text-6xl">
-                  {AGENT_STATS.rmaRating}
+                  {stats.rmaRating}
                 </p>
                 <p
                   className="mt-2 flex h-5 items-center text-[0.95rem] leading-none tracking-[0.18em] text-rw-yellow"
@@ -331,7 +332,7 @@ export default async function HomePage() {
               <div className="w-px shrink-0 self-stretch bg-line" aria-hidden />
               <div className="flex w-[7.75rem] flex-col sm:w-[8.5rem]">
                 <p className="display text-5xl leading-none tabular-nums md:text-6xl">
-                  {AGENT_STATS.rmaReviewCountLabel}
+                  {stats.rmaReviewCountLabel}
                 </p>
                 <div
                   className="mt-2 flex h-5 items-center gap-[0.22em] text-rw-yellow"
