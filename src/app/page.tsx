@@ -65,7 +65,7 @@ export default async function HomePage() {
           <p className="display fade-up-delay-2 mt-5 max-w-2xl text-2xl font-medium leading-snug tracking-tight text-white md:text-4xl md:leading-[1.15]">
             Elite North Shore agent.
           </p>
-          <p className="fade-up-delay-2 mt-4 max-w-xl text-base leading-relaxed text-white/90 md:text-xl">
+          <p className="fade-up-delay-2 mt-4 text-base leading-relaxed text-white/90 whitespace-nowrap md:text-xl">
             <span className="font-semibold text-white">
               {AGENT_STATS.salesCountLabel} sales
             </span>
@@ -77,7 +77,7 @@ export default async function HomePage() {
             </span>
             <span className="text-white/80">
               {" "}
-              — clear advice and results people talk about.
+              — clear advice and results people talk&nbsp;about.
             </span>
           </p>
           <div className="fade-up-delay-2 mt-9 flex flex-wrap gap-3">
