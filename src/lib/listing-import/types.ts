@@ -25,6 +25,11 @@ export type ListingImportHints = {
   agentName?: string | null;
   /** Ray White office member id for team matching */
   agentMemberId?: number | null;
+  /** All agents on the source listing (lead first). */
+  agents?: Array<{
+    fullName: string;
+    memberId?: number | null;
+  }>;
   agencyName?: string | null;
   externalId?: string | null;
   soldDate?: string | null;

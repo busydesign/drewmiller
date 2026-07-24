@@ -184,9 +184,15 @@ export function parseRayWhiteOffice(
     ),
   ];
 
-  // First agent on the Ray White listing is the lead
-  const agentName = listing.agents?.[0]?.fullName || "Drew Miller";
-  const agentMemberId = listing.agents?.[0]?.memberId ?? null;
+  // Preserve full agent list (lead is first on Ray White)
+  const agents = (listing.agents || [])
+    .map((a) => ({
+      fullName: cleanText(a.fullName || ""),
+      memberId: a.memberId ?? null,
+    }))
+    .filter((a) => a.fullName);
+  const agentName = agents[0]?.fullName || "Drew Miller";
+  const agentMemberId = agents[0]?.memberId ?? null;
 
   const summaryBits = [
     headline || null,
@@ -223,6 +229,7 @@ export function parseRayWhiteOffice(
       parking: listing.carSpaces ?? null,
       agentName,
       agentMemberId,
+      agents,
       externalId: listing.sourceId || (listing.listingId ? `rw:${listing.listingId}` : null),
       agencyName: "Ray White Mairangi Bay",
       listedPriceLabel,

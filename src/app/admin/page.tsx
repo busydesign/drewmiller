@@ -22,7 +22,7 @@ export default async function AdminPage() {
     );
   }
 
-  const [listings, leads, blogPosts, settings] = await Promise.all([
+  const [listings, leads, blogPosts, settings, agents] = await Promise.all([
     prisma.listing.findMany({
       orderBy: [{ status: "asc" }, { updatedAt: "desc" }],
       select: {
@@ -36,6 +36,13 @@ export default async function AdminPage() {
         importSource: true,
         coverImageUrl: true,
         updatedAt: true,
+        agentLinks: {
+          orderBy: { sortOrder: "asc" },
+          select: {
+            isLead: true,
+            agent: { select: { id: true, name: true } },
+          },
+        },
       },
     }),
     prisma.appraisalLead.findMany({ orderBy: { createdAt: "desc" }, take: 10 }),
@@ -54,15 +61,39 @@ export default async function AdminPage() {
       },
     }),
     prisma.siteSettings.findUnique({ where: { id: "default" } }),
+    prisma.agent.findMany({
+      where: { published: true },
+      orderBy: [{ isLead: "desc" }, { sortOrder: "asc" }],
+      select: {
+        id: true,
+        name: true,
+        isLead: true,
+        rwMemberId: true,
+      },
+    }),
   ]);
 
   return (
     <div data-reveal-skip>
       <AdminDashboard
         listings={listings.map((l) => ({
-          ...l,
+          id: l.id,
+          slug: l.slug,
+          address: l.address,
+          suburb: l.suburb,
+          status: l.status,
+          published: l.published,
+          sourceUrl: l.sourceUrl,
+          importSource: l.importSource,
+          coverImageUrl: l.coverImageUrl,
           updatedAt: l.updatedAt.toISOString(),
+          agents: l.agentLinks.map((link) => ({
+            id: link.agent.id,
+            name: link.agent.name,
+            isLead: link.isLead,
+          })),
         }))}
+        agents={agents}
         leads={leads.map((l) => ({
           ...l,
           createdAt: l.createdAt.toISOString(),

@@ -34,6 +34,11 @@ export async function POST(req: Request) {
     typeof body.listingId === "string" && body.listingId.trim()
       ? body.listingId.trim()
       : null;
+  const agentIdsOverride = Array.isArray(body.agentIds)
+    ? body.agentIds
+        .map((id: unknown) => String(id || "").trim())
+        .filter(Boolean)
+    : null;
 
   if (!url) {
     return NextResponse.json({ error: "URL required" }, { status: 400 });
@@ -117,19 +122,72 @@ export async function POST(req: Request) {
         .join(" · ") ||
       preview.description;
 
-    const leadAgent =
-      (preview.hints.agentMemberId != null
-        ? await prisma.agent.findUnique({
-            where: { rwMemberId: preview.hints.agentMemberId },
-          })
-        : null) ||
-      (preview.hints.agentName
-        ? await prisma.agent.findFirst({
-            where: {
-              name: { equals: preview.hints.agentName },
-            },
-          })
-        : null);
+    const teamAgents = await prisma.agent.findMany({
+      where: { published: true },
+      select: { id: true, name: true, rwMemberId: true, isLead: true },
+      orderBy: [{ isLead: "desc" }, { sortOrder: "asc" }],
+    });
+    const byMemberId = new Map(
+      teamAgents
+        .filter((a) => a.rwMemberId != null)
+        .map((a) => [a.rwMemberId as number, a])
+    );
+    const byName = new Map(
+      teamAgents.map((a) => [a.name.toLowerCase(), a] as const)
+    );
+
+    const sourceAgents =
+      preview.hints.agents?.length
+        ? preview.hints.agents
+        : preview.hints.agentName || preview.hints.agentMemberId != null
+          ? [
+              {
+                fullName: preview.hints.agentName || "",
+                memberId: preview.hints.agentMemberId ?? null,
+              },
+            ]
+          : [];
+
+    let matchedAgents = sourceAgents
+      .map((row, index) => {
+        const agent =
+          (row.memberId != null ? byMemberId.get(row.memberId) : null) ||
+          (row.fullName
+            ? byName.get(row.fullName.toLowerCase()) || null
+            : null);
+        if (!agent) return null;
+        return { agent, index, isLead: index === 0 };
+      })
+      .filter(
+        (
+          row
+        ): row is {
+          agent: (typeof teamAgents)[number];
+          index: number;
+          isLead: boolean;
+        } => Boolean(row)
+      );
+
+    // Manual override from admin checkboxes (order preserved; first = lead)
+    if (agentIdsOverride?.length) {
+      matchedAgents = agentIdsOverride
+        .map((id, index) => {
+          const agent = teamAgents.find((a) => a.id === id);
+          if (!agent) return null;
+          return { agent, index, isLead: index === 0 };
+        })
+        .filter(
+          (
+            row
+          ): row is {
+            agent: (typeof teamAgents)[number];
+            index: number;
+            isLead: boolean;
+          } => Boolean(row)
+        );
+    }
+
+    const leadAgent = matchedAgents.find((a) => a.isLead)?.agent || null;
 
     const listingData = {
       slug,
@@ -191,15 +249,15 @@ export async function POST(req: Request) {
           },
         });
 
-    if (leadAgent) {
-      await prisma.listingAgent.deleteMany({ where: { listingId: listing.id } });
-      await prisma.listingAgent.create({
-        data: {
+    await prisma.listingAgent.deleteMany({ where: { listingId: listing.id } });
+    if (matchedAgents.length > 0) {
+      await prisma.listingAgent.createMany({
+        data: matchedAgents.map(({ agent, index, isLead }) => ({
           listingId: listing.id,
-          agentId: leadAgent.id,
-          isLead: true,
-          sortOrder: 0,
-        },
+          agentId: agent.id,
+          isLead,
+          sortOrder: index,
+        })),
       });
     }
 
@@ -227,6 +285,11 @@ export async function POST(req: Request) {
       source: preview.source,
       images: preview.galleryUrls.length,
       updated: Boolean(existing),
+      agents: matchedAgents.map(({ agent, isLead }) => ({
+        id: agent.id,
+        name: agent.name,
+        isLead,
+      })),
     });
   } catch (err) {
     return NextResponse.json(
