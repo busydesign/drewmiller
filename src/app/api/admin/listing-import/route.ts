@@ -52,15 +52,25 @@ export async function POST(req: Request) {
 
     const address = preview.propertyAddress || preview.title;
     const isForSale = preview.status !== "SOLD";
+    const externalId = preview.hints.externalId?.trim() || null;
 
-    // Prefer explicit listing target (admin "refresh this page"), else match sourceUrl
+    // Prefer explicit listing target (admin "refresh this page"), else match
+    // sourceUrl / externalId (team sync often creates the row first).
     const existing =
       (listingId
         ? await prisma.listing.findUnique({ where: { id: listingId } })
         : null) ||
       (await prisma.listing.findFirst({
         where: { sourceUrl: preview.sourceUrl },
-      }));
+      })) ||
+      (externalId
+        ? await prisma.listing.findUnique({ where: { externalId } })
+        : null) ||
+      (externalId
+        ? await prisma.listing.findFirst({
+            where: { sourceUrl: { contains: externalId } },
+          })
+        : null);
 
     if (listingId && !existing) {
       return NextResponse.json(
@@ -141,7 +151,7 @@ export async function POST(req: Request) {
       listedAt: existing?.listedAt ?? new Date(),
       sourceUrl: preview.sourceUrl,
       importSource: preview.source,
-      externalId: preview.hints.externalId || null,
+      externalId: externalId || existing?.externalId || null,
       leadAgentId: leadAgent?.id ?? null,
       latitude: geo?.latitude ?? null,
       longitude: geo?.longitude ?? null,
