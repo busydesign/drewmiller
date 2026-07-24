@@ -6,6 +6,7 @@ export const TEAM_MEMBER_IDS = [
   188066, // Pavithra Pillay
   188410, // Vernon Rodrigues
   177558, // Harrison Cutfield
+  168144, // Shane Crowle
 ] as const;
 
 export const TEAM_SEED = [
@@ -92,6 +93,20 @@ export const TEAM_SEED = [
     rwUsername: "hc250407314",
     isLead: false,
     sortOrder: 5,
+  },
+  {
+    slug: "shane-crowle",
+    name: "Shane Crowle",
+    role: "Licensee Salesperson",
+    email: "shane_crowle@raywhite.com",
+    phone: "0275 445 939",
+    photoUrl:
+      "https://cdn6.ep.dynamics.net/s3/rw-media/memberphotos/3b8021b6-c59c-4bcf-862f-75b5775b639f.jpg",
+    sourceUrl: "https://rwmairangibay.co.nz/agents/shane-crowle/168144",
+    rwMemberId: 168144,
+    rwUsername: "sc240115473",
+    isLead: false,
+    sortOrder: 6,
   },
 ] as const;
 
