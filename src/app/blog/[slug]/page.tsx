@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BlogCover } from "@/components/BlogCover";
 import { cleanMigratedBodyHtml } from "@/lib/clean-migrated-html";
 import { prisma } from "@/lib/db";
 import { formatDate } from "@/lib/format";
@@ -55,20 +55,14 @@ export default async function BlogPostPage({ params }: Props) {
         </div>
       </section>
 
-      {post.coverImageUrl ? (
-        <div className="shell mt-10 max-w-4xl">
-          <div className="relative aspect-[16/9] overflow-hidden bg-mist">
-            <Image
-              src={post.coverImageUrl}
-              alt=""
-              fill
-              className="object-cover"
-              sizes="(max-width: 896px) 100vw, 896px"
-              priority
-            />
-          </div>
-        </div>
-      ) : null}
+      <div className="shell mt-10 max-w-4xl">
+        <BlogCover
+          src={post.coverImageUrl}
+          aspectClassName="aspect-[16/9]"
+          sizes="(max-width: 896px) 100vw, 896px"
+          priority
+        />
+      </div>
 
       <section className="section pt-10">
         <div className="shell max-w-3xl">

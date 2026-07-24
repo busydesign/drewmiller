@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
+import { BlogCover } from "@/components/BlogCover";
 import { prisma } from "@/lib/db";
 import { formatDate } from "@/lib/format";
 
@@ -68,17 +68,7 @@ export default async function BlogIndexPage() {
               return (
                 <li key={post.slug}>
                   <Link href={`/blog/${post.slug}`} className="group block">
-                    <div className="relative aspect-[16/10] overflow-hidden bg-mist">
-                      {post.coverImageUrl ? (
-                        <Image
-                          src={post.coverImageUrl}
-                          alt=""
-                          fill
-                          className="object-cover transition duration-500 group-hover:scale-[1.02]"
-                          sizes="(max-width: 768px) 100vw, 33vw"
-                        />
-                      ) : null}
-                    </div>
+                    <BlogCover src={post.coverImageUrl} />
                     {date ? (
                       <p className="mt-4 text-[11px] font-medium uppercase tracking-[0.14em] text-muted">
                         {date}

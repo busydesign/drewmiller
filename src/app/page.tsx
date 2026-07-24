@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { MessageSquare } from "lucide-react";
+import { BlogCover } from "@/components/BlogCover";
 import { HeroBanner } from "@/components/HeroBanner";
 import { HorizontalSlider } from "@/components/HorizontalSlider";
 import { ListingCard } from "@/components/ListingCard";
@@ -387,17 +388,7 @@ export default async function HomePage() {
                   href={`/blog/${post.slug}`}
                   className="group block"
                 >
-                  <div className="relative aspect-[16/10] overflow-hidden bg-mist">
-                    {post.coverImageUrl ? (
-                      <Image
-                        src={post.coverImageUrl}
-                        alt=""
-                        fill
-                        className="object-cover transition duration-500 group-hover:scale-[1.02]"
-                        sizes="(max-width: 768px) 100vw, 33vw"
-                      />
-                    ) : null}
-                  </div>
+                  <BlogCover src={post.coverImageUrl} />
                   <p className="mt-4 text-[15px] font-medium leading-snug tracking-tight">
                     {post.title}
                   </p>
