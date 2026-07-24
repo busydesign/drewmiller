@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { FloatingAppraisalButton } from "@/components/FloatingAppraisalButton";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { MetaPixel } from "@/components/MetaPixel";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -54,6 +55,7 @@ export default function RootLayout({
         <FloatingAppraisalButton />
         <ScrollReveal />
         <MetaPixel />
+        <GoogleAnalytics />
       </body>
     </html>
   );
