@@ -44,7 +44,7 @@ async function sendViaSmtp(
 
     const info = await transporter.sendMail({
       from,
-      to: `${NOTIFY_TO_NAME} <${NOTIFY_TO}>`,
+      to: NOTIFY_TO,
       replyTo: input.replyTo || undefined,
       subject: input.subject,
       html: input.html,
@@ -76,7 +76,8 @@ async function sendViaResend(
       },
       body: JSON.stringify({
         from,
-        to: [`${NOTIFY_TO_NAME} <${NOTIFY_TO}>`],
+        // Plain address required — "Name <email>" fails Resend's unverified-domain checks
+        to: [NOTIFY_TO],
         subject: input.subject,
         html: input.html,
         text: input.text,
