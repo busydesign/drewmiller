@@ -287,7 +287,7 @@ export function AdminBlogManager({ posts }: Props) {
                   />
                 </label>
                 <p className="text-xs text-muted">
-                  JPG, PNG, WebP or GIF · max 8MB
+                  JPG, PNG, WebP or GIF · max 8MB · stored on the server
                 </p>
               </div>
               {form.coverImageUrl ? (

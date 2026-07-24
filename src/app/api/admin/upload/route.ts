@@ -1,8 +1,12 @@
 import { randomBytes } from "crypto";
-import { mkdir, writeFile } from "fs/promises";
+import { writeFile } from "fs/promises";
 import path from "path";
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth";
+import {
+  blogUploadPublicUrl,
+  ensureBlogUploadDir,
+} from "@/lib/uploads";
 
 export const runtime = "nodejs";
 
@@ -29,39 +33,55 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const form = await req.formData().catch(() => null);
-  if (!form) {
-    return NextResponse.json({ error: "Invalid form data" }, { status: 400 });
-  }
+  try {
+    const form = await req.formData().catch(() => null);
+    if (!form) {
+      return NextResponse.json({ error: "Invalid form data" }, { status: 400 });
+    }
 
-  const file = form.get("file");
-  if (!(file instanceof File)) {
-    return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
-  }
+    const file = form.get("file");
+    if (!(file instanceof File)) {
+      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+    }
 
-  if (file.size <= 0 || file.size > MAX_BYTES) {
+    if (file.size <= 0 || file.size > MAX_BYTES) {
+      return NextResponse.json(
+        { error: "Image must be under 8MB" },
+        { status: 400 }
+      );
+    }
+
+    const ext = ALLOWED.get(file.type);
+    if (!ext) {
+      return NextResponse.json(
+        { error: "Use a JPG, PNG, WebP, or GIF image" },
+        { status: 400 }
+      );
+    }
+
+    const base = sanitizeBaseName(file.name) || "image";
+    const filename = `${base}-${randomBytes(4).toString("hex")}.${ext}`;
+    const uploadsDir = await ensureBlogUploadDir();
+    const buffer = Buffer.from(await file.arrayBuffer());
+    await writeFile(path.join(uploadsDir, filename), buffer);
+
+    const url = blogUploadPublicUrl(filename);
+    return NextResponse.json({
+      ok: true,
+      url,
+      filename,
+      persistent: Boolean(process.env.UPLOAD_DIR?.trim()),
+    });
+  } catch (err) {
+    console.error("[upload]", err);
     return NextResponse.json(
-      { error: "Image must be under 8MB" },
-      { status: 400 }
+      {
+        error:
+          err instanceof Error
+            ? err.message
+            : "Upload failed — check disk/volume permissions",
+      },
+      { status: 500 }
     );
   }
-
-  const ext = ALLOWED.get(file.type);
-  if (!ext) {
-    return NextResponse.json(
-      { error: "Use a JPG, PNG, WebP, or GIF image" },
-      { status: 400 }
-    );
-  }
-
-  const base = sanitizeBaseName(file.name) || "image";
-  const filename = `${base}-${randomBytes(4).toString("hex")}.${ext}`;
-  const uploadsDir = path.join(process.cwd(), "public", "uploads", "blog");
-  await mkdir(uploadsDir, { recursive: true });
-
-  const buffer = Buffer.from(await file.arrayBuffer());
-  await writeFile(path.join(uploadsDir, filename), buffer);
-
-  const url = `/uploads/blog/${filename}`;
-  return NextResponse.json({ ok: true, url, filename });
 }
