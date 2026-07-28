@@ -44,11 +44,11 @@ export function SiteHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-2xl supports-[backdrop-filter]:bg-white/70">
+      <header className="sticky top-0 z-40 bg-paper/90 backdrop-blur-2xl supports-[backdrop-filter]:bg-paper/70">
         <div className="shell flex h-16 items-center justify-between gap-4 md:h-20 md:gap-6">
           <Link
             href="/"
-            className="min-w-0 text-lg font-medium tracking-tight md:text-xl lg:text-2xl"
+            className="min-w-0 text-lg font-medium tracking-tight text-ink md:text-xl lg:text-2xl"
           >
             {BRAND.agentName}
           </Link>
@@ -68,7 +68,7 @@ export function SiteHeader() {
           <div className="flex shrink-0 items-center gap-2 self-stretch sm:gap-3">
             <button
               type="button"
-              className="inline-flex h-10 w-10 items-center justify-center self-center rounded-full border border-line-strong bg-white text-ink transition-opacity hover:opacity-70 lg:hidden"
+              className="inline-flex h-10 w-10 items-center justify-center self-center rounded-full border border-line-strong bg-paper text-ink transition-opacity hover:opacity-70 lg:hidden"
               aria-expanded={open}
               aria-controls={menuId}
               aria-label={open ? "Close menu" : "Open menu"}
@@ -106,7 +106,7 @@ export function SiteHeader() {
 
       <div
         id={menuId}
-        className={`fixed inset-0 z-[60] flex flex-col bg-white transition-[opacity,visibility] duration-300 lg:hidden ${
+        className={`fixed inset-0 z-[60] flex flex-col bg-paper transition-[opacity,visibility] duration-300 lg:hidden ${
           open
             ? "visible opacity-100"
             : "invisible pointer-events-none opacity-0"

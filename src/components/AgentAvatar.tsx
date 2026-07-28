@@ -48,7 +48,7 @@ export function AgentAvatar({
           unoptimized
         />
       ) : (
-        <span className="flex h-full w-full items-center justify-center bg-ink text-[10px] font-black text-rw-yellow">
+        <span className="flex h-full w-full items-center justify-center bg-charcoal text-[10px] font-black text-rw-yellow">
           {initials}
         </span>
       )}

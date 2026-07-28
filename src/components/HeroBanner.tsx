@@ -15,7 +15,7 @@ export function HeroBanner({
   return (
     <section
       data-reveal-skip
-      className="relative min-h-[78vh] overflow-hidden bg-ink md:min-h-[86vh]"
+      className="relative min-h-[78vh] overflow-hidden bg-charcoal md:min-h-[86vh]"
     >
       <Image
         src={imageSrc}
@@ -27,8 +27,8 @@ export function HeroBanner({
       />
 
       {/* Left/bottom scrim so brand type stays readable on the photo */}
-      <div className="absolute inset-0 bg-gradient-to-r from-ink/55 via-ink/25 to-transparent md:via-ink/15" />
-      <div className="absolute inset-0 bg-gradient-to-t from-ink/45 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-charcoal/55 via-charcoal/25 to-transparent md:via-charcoal/15" />
+      <div className="absolute inset-0 bg-gradient-to-t from-charcoal/45 via-transparent to-transparent" />
 
       <div className="shell relative flex min-h-[78vh] items-end py-16 md:min-h-[86vh] md:py-24">
         <div className="w-full max-w-3xl">{children}</div>

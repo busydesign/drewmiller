@@ -4,23 +4,25 @@
 /*
   Ray White–aligned system:
   - Official yellow (#FFE512) for primary CTAs and key accents only
-  - Near-black ink on white / light grey for body surfaces
+  - Cream page ground (#FAF9F1) with grey body text (#595959)
+  - Charcoal reserved for photo overlays and dark UI chrome
   - Drew Miller leads as the local brand; Ray White affiliation stays visible in chrome
 */
 :root {
   --rw-yellow: #ffe512; /* Ray White yellow */
   --rw-yellow-deep: #f0d600;
-  --ink: #171a20;
-  --ink-soft: #5c5e62;
-  --muted: #8e8e8e;
-  --mist: #f4f4f4;
-  --paper: #ffffff;
-  --cream: #f4f4f4;
-  --line: #eeeeee;
-  --line-strong: #d0d1d2;
-  --sea: #171a20;
-  --sea-deep: #000000;
-  --sea-soft: #f4f4f4;
+  --ink: #595959; /* Ray White body grey */
+  --ink-soft: #6f6f6f;
+  --muted: #8a8a8a;
+  --charcoal: #171a20; /* dark panels / overlays only */
+  --mist: #f3f2e9;
+  --paper: #faf9f1; /* Ray White cream */
+  --cream: #faf9f1;
+  --line: #ebe9df;
+  --line-strong: #d5d3c9;
+  --sea: #595959;
+  --sea-deep: #3f3f3f;
+  --sea-soft: #f3f2e9;
   --sand: #ffe512;
   --danger: #b42318;
   --background: var(--paper);
@@ -42,6 +44,7 @@
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
   --color-muted: var(--muted);
+  --color-charcoal: var(--charcoal);
   --color-mist: var(--mist);
   --color-paper: var(--paper);
   --color-cream: var(--cream);
@@ -88,7 +91,7 @@ a {
 
 ::selection {
   background: var(--rw-yellow);
-  color: var(--ink);
+  color: var(--charcoal);
 }
 
 /* Display = same family, medium weight — no serif contrast */
@@ -145,7 +148,7 @@ a {
 }
 
 .btn-sea {
-  background: var(--ink);
+  background: var(--charcoal);
   color: white;
 }
 
@@ -163,7 +166,7 @@ a {
 
 .btn-on-dark:hover {
   background: white;
-  color: var(--ink);
+  color: var(--charcoal);
   opacity: 1;
 }
 

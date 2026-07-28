@@ -42,7 +42,7 @@ export function TeamGrid({
                 unoptimized
               />
             ) : (
-              <span className="flex h-full w-full items-center justify-center bg-ink text-sm font-black text-rw-yellow">
+              <span className="flex h-full w-full items-center justify-center bg-charcoal text-sm font-black text-rw-yellow">
                 {member.name
                   .split(/\s+/)
                   .map((p) => p[0])
@@ -53,7 +53,7 @@ export function TeamGrid({
           </span>
           <span className="min-w-0 pt-1">
             {member.isLead && (
-              <span className="mb-1 inline-block rounded-full bg-ink px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] text-white">
+              <span className="mb-1 inline-block rounded-full bg-charcoal px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] text-white">
                 Team lead
               </span>
             )}

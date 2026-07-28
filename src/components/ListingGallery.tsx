@@ -84,14 +84,14 @@ export function ListingGallery({ images, title = "Gallery" }: Props) {
               unoptimized
               sizes="(max-width: 768px) 100vw, 50vw"
             />
-            <span className="pointer-events-none absolute inset-0 bg-ink/0 transition-colors group-hover:bg-ink/15" />
+            <span className="pointer-events-none absolute inset-0 bg-charcoal/0 transition-colors group-hover:bg-charcoal/15" />
           </button>
         ))}
       </div>
 
       {active && activeIndex != null && (
         <div
-          className="fixed inset-0 z-[80] flex items-center justify-center bg-ink/92 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-charcoal/92 p-4 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
           aria-label="Image gallery lightbox"

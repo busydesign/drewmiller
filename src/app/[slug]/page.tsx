@@ -137,7 +137,7 @@ export default async function SlugPage({ params }: Props) {
             propertyType: listing.propertyType,
           })}
         />
-        <section className="relative min-h-[48vh] overflow-hidden bg-ink text-white">
+        <section className="relative min-h-[48vh] overflow-hidden bg-charcoal text-white">
           {coverImageUrl && (
             <Image
               src={coverImageUrl}
@@ -148,7 +148,7 @@ export default async function SlugPage({ params }: Props) {
               priority
             />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/30 to-ink/15" />
+          <div className="absolute inset-0 bg-gradient-to-t from-charcoal/80 via-charcoal/30 to-charcoal/15" />
           <div className="shell relative flex min-h-[48vh] items-end py-12">
             <div>
               <p className="eyebrow !text-white/65">

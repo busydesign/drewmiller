@@ -54,7 +54,7 @@ export default async function AboutPage() {
     <section className="section">
       <JsonLd data={realEstateAgentJsonLd()} />
       <div className="shell grid gap-10 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="relative min-h-[420px] overflow-hidden bg-ink lg:sticky lg:top-24 lg:self-start lg:min-h-[560px]">
+        <div className="relative min-h-[420px] overflow-hidden bg-charcoal lg:sticky lg:top-24 lg:self-start lg:min-h-[560px]">
           <Image
             src={HERO_IMAGE}
             alt="Drew Miller and the Ray White North Shore team"

@@ -438,7 +438,7 @@ export function AdminDashboard({
                 onClick={() => setTab(item.id)}
                 className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${
                   active
-                    ? "bg-ink text-white"
+                    ? "bg-charcoal text-white"
                     : "border border-line bg-paper text-ink-soft hover:text-ink"
                 }`}
               >
@@ -726,8 +726,8 @@ export function AdminDashboard({
                                   ? "bg-rw-yellow text-ink"
                                   : listing.status === "WITHDRAWN" ||
                                       listing.status === "ARCHIVED"
-                                    ? "bg-ink-soft text-white"
-                                    : "bg-ink text-white"
+                                    ? "bg-charcoal-soft text-white"
+                                    : "bg-charcoal text-white"
                               }`}
                             >
                               {statusLabel}

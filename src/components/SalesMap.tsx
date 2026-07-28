@@ -281,7 +281,7 @@ export function SalesMap({
           </div>
         )}
         {gestureHint && (
-          <p className="pointer-events-none absolute left-3 top-3 rounded-full bg-ink/80 px-3 py-1.5 text-[11px] font-medium text-white backdrop-blur">
+          <p className="pointer-events-none absolute left-3 top-3 rounded-full bg-charcoal/80 px-3 py-1.5 text-[11px] font-medium text-white backdrop-blur">
             Scroll to zoom · click map again to lock
           </p>
         )}
