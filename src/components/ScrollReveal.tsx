@@ -59,13 +59,12 @@ export function ScrollReveal() {
         el.dataset.revealBound = "1";
         el.classList.add("reveal-ready");
 
-        // Already in view on load (e.g. stats under hero)
+        // Already in view on load — reveal immediately (no blank first paint)
         const rect = el.getBoundingClientRect();
         const inView =
           rect.top < window.innerHeight * 0.92 && rect.bottom > 0;
         if (inView) {
-          // Small delay so first paint can settle
-          requestAnimationFrame(() => markRevealed(el));
+          markRevealed(el);
         } else {
           observer.observe(el);
         }

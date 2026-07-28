@@ -17,6 +17,12 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      // Legacy / mistaken nav path
+      {
+        source: "/sales-map",
+        destination: "/map",
+        permanent: true,
+      },
       // Old Squarespace dated blog URLs → flat /blog/[slug]
       {
         source: "/blog/:year(\\d{4})/:month(\\d{1,2})/:day(\\d{1,2})/:slug",
