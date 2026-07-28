@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { trackGaEvent } from "@/lib/ga-events";
 import { trackMetaEvent } from "@/lib/meta-pixel";
 
 export function AppraisalForm() {
@@ -30,6 +31,7 @@ export function AppraisalForm() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not send request");
       trackMetaEvent("Lead", { content_name: "Appraisal request" });
+      trackGaEvent("request_appraisal", { form_location: "appraisal_page" });
       formEl.reset();
       setStatus("done");
     } catch (err) {

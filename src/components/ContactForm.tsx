@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { trackGaEvent } from "@/lib/ga-events";
 import { trackMetaEvent } from "@/lib/meta-pixel";
 
 export function ContactForm() {
@@ -29,6 +30,7 @@ export function ContactForm() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not send message");
       trackMetaEvent("Contact", { content_name: "Contact form" });
+      trackGaEvent("contact_form", { form_location: "contact_page" });
       formEl.reset();
       setStatus("done");
     } catch (err) {

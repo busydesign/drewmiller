@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { Mail, MapPin, Phone } from "lucide-react";
 import { ContactForm } from "@/components/ContactForm";
+import {
+  ContactMethods,
+  type ContactMethod,
+} from "@/components/ContactMethods";
 import { HERO_IMAGE, RAY_WHITE_PROFILE_URL } from "@/lib/agent-proof";
 import { BRAND } from "@/lib/brand";
 import { prisma } from "@/lib/db";
@@ -28,30 +31,30 @@ export default async function ContactPage() {
   const agency = settings?.agencyName || BRAND.agencyName;
   const phoneHref = phone.replace(/\s+/g, "");
 
-  const methods = [
+  const methods: ContactMethod[] = [
     {
       label: "Phone",
       value: phone,
       href: `tel:${phoneHref}`,
-      icon: Phone,
+      icon: "phone",
       hint: "Call or text anytime",
     },
     {
       label: "Email",
       value: `${BRAND.emailName} · ${email}`,
       href: `mailto:${email}`,
-      icon: Mail,
+      icon: "mail",
       hint: "We usually reply the same day",
     },
     {
       label: "Office",
       value: agency,
       href: RAY_WHITE_PROFILE_URL,
-      icon: MapPin,
+      icon: "map",
       hint: "Mairangi Bay & Milford · North Shore",
       external: true,
     },
-  ] as const;
+  ];
 
   return (
     <>
@@ -80,36 +83,8 @@ export default async function ContactPage() {
 
       <section className="section bg-paper">
         <div className="shell grid gap-10 lg:grid-cols-[1fr_1fr] lg:gap-16">
-          <div data-reveal-stagger className="space-y-3">
-            {methods.map((method) => {
-              const Icon = method.icon;
-              const external = "external" in method && method.external;
-              return (
-                <a
-                  key={method.label}
-                  href={method.href}
-                  {...(external
-                    ? { target: "_blank", rel: "noreferrer" }
-                    : {})}
-                  className="group flex items-start gap-4 rounded-xl bg-mist px-5 py-5 transition hover:bg-[#ececec]"
-                >
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-paper text-ink">
-                    <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-[13px] text-muted">
-                      {method.label}
-                    </span>
-                    <span className="mt-0.5 block text-base font-medium tracking-tight text-ink transition group-hover:opacity-80">
-                      {method.value}
-                    </span>
-                    <span className="mt-1 block text-sm text-muted">
-                      {method.hint}
-                    </span>
-                  </span>
-                </a>
-              );
-            })}
+          <div className="space-y-3">
+            <ContactMethods methods={methods} />
 
             <div className="rounded-xl bg-mist p-7 md:p-9">
               <p className="eyebrow">Next step</p>

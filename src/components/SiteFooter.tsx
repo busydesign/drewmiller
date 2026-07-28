@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { TrackableLink } from "@/components/TrackableLink";
 import { RATE_MY_AGENT_URL, RAY_WHITE_PROFILE_URL } from "@/lib/agent-proof";
 import { BRAND, BRAND_DISCLAIMER } from "@/lib/brand";
 
@@ -77,20 +78,24 @@ export function SiteFooter() {
           <p className="mb-4 text-[12px] font-medium text-muted">Contact</p>
           <ul className="space-y-2.5 text-ink-soft">
             <li>
-              <a
+              <TrackableLink
                 href={`tel:${BRAND.phoneHref}`}
+                gaEvent="phone_call___advertising"
+                gaParams={{ link_location: "footer" }}
                 className="transition hover:text-ink"
               >
                 {BRAND.phoneDisplay}
-              </a>
+              </TrackableLink>
             </li>
             <li>
-              <a
+              <TrackableLink
                 href={`mailto:${BRAND.email}`}
+                gaEvent="email_link__click"
+                gaParams={{ link_location: "footer" }}
                 className="transition hover:text-ink"
               >
                 {BRAND.emailName} · {BRAND.email}
-              </a>
+              </TrackableLink>
             </li>
             <li>
               <a
