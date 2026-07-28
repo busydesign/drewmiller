@@ -46,9 +46,6 @@ export function ContactForm() {
     >
       <p className="eyebrow">Message</p>
       <h2 className="display mt-2 text-3xl">Send Drew a note</h2>
-      <p className="mt-2 text-sm text-ink-soft">
-        Goes straight to Drew Miller at drew.miller@raywhite.com.
-      </p>
 
       <div className="mt-6 grid gap-4">
         <label className="block text-sm">
