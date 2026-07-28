@@ -54,7 +54,7 @@ export default async function AboutPage() {
     <section className="section">
       <JsonLd data={realEstateAgentJsonLd()} />
       <div className="shell grid gap-10 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="relative min-h-[420px] overflow-hidden bg-ink lg:sticky lg:top-24 lg:self-start lg:min-h-[560px]">
+        <div className="relative min-h-[420px] overflow-hidden bg-ink">
           <Image
             src={HERO_IMAGE}
             alt="Drew Miller and the Ray White North Shore team"
@@ -73,15 +73,7 @@ export default async function AboutPage() {
             Ray White Mairangi Bay &amp; Milford · Elite Performer
           </p>
 
-          <div className="mt-8 space-y-5">
-            {ABOUT_PARAGRAPHS.map((paragraph) => (
-              <p key={paragraph.slice(0, 48)} className="prose-site">
-                {paragraph}
-              </p>
-            ))}
-          </div>
-
-          <div className="mt-8">
+          <div className="mt-7">
             <Image
               src={RAY_WHITE_ELITE_BADGE.image}
               alt={RAY_WHITE_ELITE_BADGE.alt}
@@ -138,6 +130,14 @@ export default async function AboutPage() {
             <RmaBadgeStrip showHeader={false} showDetails={false} compact />
           </div>
         </div>
+      </div>
+
+      <div className="shell mt-16 max-w-3xl space-y-5 md:mt-20">
+        {ABOUT_PARAGRAPHS.map((paragraph) => (
+          <p key={paragraph.slice(0, 48)} className="prose-site">
+            {paragraph}
+          </p>
+        ))}
       </div>
     </section>
   );
