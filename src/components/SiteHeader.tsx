@@ -45,10 +45,10 @@ export function SiteHeader() {
   return (
     <>
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-2xl supports-[backdrop-filter]:bg-white/70">
-        <div className="shell flex h-14 items-center justify-between gap-4 md:h-16 md:gap-6">
+        <div className="shell flex h-16 items-center justify-between gap-4 md:h-20 md:gap-6">
           <Link
             href="/"
-            className="min-w-0 text-base font-medium tracking-tight md:text-lg"
+            className="min-w-0 text-lg font-medium tracking-tight md:text-xl lg:text-2xl"
           >
             {BRAND.agentName}
           </Link>
@@ -65,10 +65,10 @@ export function SiteHeader() {
             ))}
           </nav>
 
-          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+          <div className="flex shrink-0 items-center gap-2 self-stretch sm:gap-3">
             <button
               type="button"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-line-strong bg-white text-ink transition-opacity hover:opacity-70 lg:hidden"
+              className="inline-flex h-10 w-10 items-center justify-center self-center rounded-full border border-line-strong bg-white text-ink transition-opacity hover:opacity-70 lg:hidden"
               aria-expanded={open}
               aria-controls={menuId}
               aria-label={open ? "Close menu" : "Open menu"}
@@ -95,9 +95,9 @@ export function SiteHeader() {
             <Image
               src={BRAND.logoSrc}
               alt={BRAND.logoAlt}
-              width={40}
-              height={40}
-              className="h-9 w-9 shrink-0 md:h-10 md:w-10"
+              width={80}
+              height={80}
+              className="h-full w-auto shrink-0 object-contain"
               priority
             />
           </div>
@@ -113,11 +113,11 @@ export function SiteHeader() {
         }`}
         aria-hidden={!open}
       >
-        <div className="shell flex h-14 items-center justify-between gap-4 md:h-16">
+        <div className="shell flex h-16 items-center justify-between gap-4 md:h-20">
           <Link
             href="/"
             onClick={() => setOpen(false)}
-            className="min-w-0 text-base font-medium tracking-tight"
+            className="min-w-0 text-lg font-medium tracking-tight md:text-xl"
           >
             {BRAND.agentName}
           </Link>
