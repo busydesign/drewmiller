@@ -298,10 +298,12 @@ main section[data-reveal-skip],
 
 .reveal-enabled .reveal-ready.is-revealed {
   transform: none;
+  will-change: auto;
 }
 
 .reveal-enabled [data-reveal-stagger].reveal-ready.is-revealed > * {
   transform: none;
+  will-change: auto;
 }
 
 .reveal-enabled [data-reveal-stagger].reveal-ready.is-revealed > *:nth-child(1) {
