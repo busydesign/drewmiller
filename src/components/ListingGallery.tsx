@@ -50,33 +50,19 @@ export function ListingGallery({ images, title = "Gallery" }: Props) {
       if (event.key === "ArrowRight") showNext();
     };
 
-    const scrollY = window.scrollY;
     const { body, documentElement } = document;
-    const previousBody = {
-      overflow: body.style.overflow,
-      position: body.style.position,
-      top: body.style.top,
-      width: body.style.width,
-    };
+    const previousBodyOverflow = body.style.overflow;
     const previousHtmlOverflow = documentElement.style.overflow;
-
-    // Lock scroll without jumping — also avoids fixed-descendant issues
+    // Overflow-only lock keeps the current scroll position (no jump on close)
     body.style.overflow = "hidden";
-    body.style.position = "fixed";
-    body.style.top = `-${scrollY}px`;
-    body.style.width = "100%";
     documentElement.style.overflow = "hidden";
 
     window.addEventListener("keydown", onKeyDown);
 
     return () => {
-      body.style.overflow = previousBody.overflow;
-      body.style.position = previousBody.position;
-      body.style.top = previousBody.top;
-      body.style.width = previousBody.width;
+      body.style.overflow = previousBodyOverflow;
       documentElement.style.overflow = previousHtmlOverflow;
       window.removeEventListener("keydown", onKeyDown);
-      window.scrollTo(0, scrollY);
     };
   }, [activeIndex, close, showNext, showPrev]);
 
