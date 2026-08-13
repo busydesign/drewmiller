@@ -69,6 +69,27 @@ export async function getCurrentTeamListings(take?: number) {
   return take != null ? sorted.slice(0, take) : sorted;
 }
 
+/** Current listings whose suburb/address matches an area page location. */
+export async function getCurrentListingsForSuburb(suburb: string) {
+  const needle = suburb.trim();
+  if (!needle) return [];
+
+  const rows = await prisma.listing.findMany({
+    where: {
+      published: true,
+      status: { in: ["FOR_SALE", "UNDER_OFFER", "COMING_SOON"] },
+      OR: [
+        { suburb: { equals: needle, mode: "insensitive" } },
+        { suburb: { contains: needle, mode: "insensitive" } },
+        { address: { contains: needle, mode: "insensitive" } },
+      ],
+    },
+    include: listingCardInclude,
+  });
+
+  return sortTeamListings(rows);
+}
+
 export async function getAgentListings(agentId: string) {
   const links = await prisma.listingAgent.findMany({
     where: {

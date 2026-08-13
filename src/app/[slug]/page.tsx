@@ -4,9 +4,11 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { JsonLd } from "@/components/JsonLd";
+import { ListingCard } from "@/components/ListingCard";
 import { ListingFeatures } from "@/components/ListingFeatures";
 import { ListingGallery } from "@/components/ListingGallery";
 import { ListingLocationMap } from "@/components/ListingLocationMap";
+import { suburbNameFromAreaPage } from "@/lib/area-suburb";
 import { prisma } from "@/lib/db";
 import { formatDate, formatPriceCents } from "@/lib/format";
 import {
@@ -18,6 +20,10 @@ import {
   isJunkMigrationImage,
   pickCoverImage,
 } from "@/lib/listing-images";
+import {
+  agentsForCard,
+  getCurrentListingsForSuburb,
+} from "@/lib/listings-query";
 import { listingJsonLd } from "@/lib/structured-data";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -368,26 +374,78 @@ export default async function SlugPage({ params }: Props) {
   }
   const pageHtml = cleanMigratedBodyHtml(page.bodyHtml);
   const pageSummary = htmlToPlainText(page.summary);
+  const isArea = page.kind === "AREA";
+  const suburb = isArea
+    ? suburbNameFromAreaPage(page.slug, page.title)
+    : null;
+  const areaListings =
+    suburb != null ? await getCurrentListingsForSuburb(suburb) : [];
 
   return (
-    <section className="section">
-      <div className="shell max-w-3xl">
-        <p className="eyebrow">{page.kind.toLowerCase()}</p>
-        <h1 className="display mt-2 text-5xl">{page.title}</h1>
-        {pageSummary ? (
-          <p className="mt-4 text-lg text-ink-soft">{pageSummary}</p>
-        ) : null}
-        {pageHtml ? (
-          <div
-            className="prose-site mt-10 space-y-4"
-            dangerouslySetInnerHTML={{ __html: pageHtml }}
-          />
-        ) : (
-          <div className="prose-site mt-10 whitespace-pre-wrap">
-            {page.bodyMarkdown}
+    <>
+      <section className="section">
+        <div className="shell max-w-3xl">
+          <p className="eyebrow">{page.kind.toLowerCase()}</p>
+          <h1 className="display mt-2 text-5xl">{page.title}</h1>
+          {pageSummary ? (
+            <p className="mt-4 text-lg text-ink-soft">{pageSummary}</p>
+          ) : null}
+          {pageHtml ? (
+            <div
+              className="prose-site mt-10 space-y-4"
+              dangerouslySetInnerHTML={{ __html: pageHtml }}
+            />
+          ) : (
+            <div className="prose-site mt-10 whitespace-pre-wrap">
+              {page.bodyMarkdown}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {isArea && suburb ? (
+        <section className="section pt-0">
+          <div className="shell">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="eyebrow">For sale now</p>
+                <h2 className="display mt-2 text-3xl md:text-4xl">
+                  Current listings in {suburb}
+                </h2>
+              </div>
+              <Link href="/listings" className="btn btn-secondary">
+                All current listings
+              </Link>
+            </div>
+
+            {areaListings.length === 0 ? (
+              <p className="mt-6 max-w-2xl text-ink-soft">
+                No current listings in {suburb} right now. Browse the full
+                team list, or request an appraisal if you’re thinking of
+                selling here.
+              </p>
+            ) : (
+              <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {areaListings.map((listing) => (
+                  <ListingCard
+                    key={listing.id}
+                    slug={listing.slug}
+                    title={listing.title}
+                    address={listing.address}
+                    suburb={listing.suburb}
+                    coverImageUrl={listing.coverImageUrl}
+                    bedrooms={listing.bedrooms}
+                    bathrooms={listing.bathrooms}
+                    status={listing.status}
+                    priceLabel={listing.listedPriceLabel}
+                    agents={agentsForCard(listing)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
-        )}
-      </div>
-    </section>
+        </section>
+      ) : null}
+    </>
   );
 }
