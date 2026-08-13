@@ -19,6 +19,30 @@ export function stripImportFooter(text: string | null | undefined): string | nul
   return cleaned.length ? cleaned : null;
 }
 
+/** Strip HTML tags / entities to plain text (summaries, meta descriptions). */
+export function htmlToPlainText(html: string | null | undefined): string | null {
+  if (!html?.trim()) return null;
+  const text = html
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<\/(p|div|h[1-6]|li|tr)>/gi, " ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&#(\d+);/g, (_, n) => {
+      const code = Number(n);
+      return Number.isFinite(code) ? String.fromCharCode(code) : "";
+    })
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text || null;
+}
+
 /**
  * Squarespace page HTML ships with layout chrome (spacers, social SVGs, aspect-ratio
  * image shells) that collapses badly without Squarespace CSS — often as multi-thousand

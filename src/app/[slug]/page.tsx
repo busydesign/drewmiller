@@ -11,6 +11,7 @@ import { prisma } from "@/lib/db";
 import { formatDate, formatPriceCents } from "@/lib/format";
 import {
   cleanMigratedBodyHtml,
+  htmlToPlainText,
   stripImportFooter,
 } from "@/lib/clean-migrated-html";
 import {
@@ -47,9 +48,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
   const page = await prisma.contentPage.findUnique({ where: { slug } });
   if (page) {
+    const description =
+      htmlToPlainText(page.seoDescription) ||
+      htmlToPlainText(page.summary) ||
+      undefined;
     return {
       title: page.seoTitle || page.title,
-      description: page.seoDescription || page.summary || undefined,
+      description,
+      alternates: { canonical: `/${page.slug}` },
     };
   }
   return {};
@@ -361,13 +367,16 @@ export default async function SlugPage({ params }: Props) {
     redirect(`/blog/${page.slug}`);
   }
   const pageHtml = cleanMigratedBodyHtml(page.bodyHtml);
+  const pageSummary = htmlToPlainText(page.summary);
 
   return (
     <section className="section">
       <div className="shell max-w-3xl">
         <p className="eyebrow">{page.kind.toLowerCase()}</p>
         <h1 className="display mt-2 text-5xl">{page.title}</h1>
-        {page.summary && <p className="mt-4 text-lg text-ink-soft">{page.summary}</p>}
+        {pageSummary ? (
+          <p className="mt-4 text-lg text-ink-soft">{pageSummary}</p>
+        ) : null}
         {pageHtml ? (
           <div
             className="prose-site mt-10 space-y-4"
