@@ -1,5 +1,6 @@
 import { decodeHtmlEntities } from "@/lib/listing-import/decode-html";
 import type { ListingImportPreview } from "@/lib/listing-import/types";
+import type { RayWhiteListingRef } from "@/lib/listing-import/raywhite-source-id";
 
 const API = "https://rwmairangibay.co.nz/api/proxy/v1";
 const USER_AGENT =
@@ -187,10 +188,14 @@ function listingToPreview(
   };
 }
 
-async function fetchListingBySourceId(
-  sourceId: string
+async function fetchListingByRef(
+  ref: RayWhiteListingRef
 ): Promise<ApiListing | null> {
-  const url = `${API}/listings?q=sourceId:${encodeURIComponent(sourceId)}`;
+  const query =
+    ref.kind === "sourceId"
+      ? `sourceId:${encodeURIComponent(ref.value)}`
+      : `id:${encodeURIComponent(ref.value)}`;
+  const url = `${API}/listings?q=${query}`;
   const res = await fetch(url, {
     headers: {
       "User-Agent": USER_AGENT,
@@ -209,12 +214,12 @@ async function fetchListingBySourceId(
   return listing?.id ? listing : null;
 }
 
-/** Fallback when raywhite.co.nz HTML is blocked (e.g. CloudFront on server IPs). */
+/** Fallback when Ray White HTML is blocked (e.g. CloudFront on server IPs). */
 export async function fetchRayWhiteListingFromApi(
-  sourceId: string,
+  ref: RayWhiteListingRef,
   sourceUrl: string
 ): Promise<ListingImportPreview | null> {
-  const listing = await fetchListingBySourceId(sourceId);
+  const listing = await fetchListingByRef(ref);
   if (!listing) return null;
   return listingToPreview(listing, sourceUrl);
 }
