@@ -64,7 +64,28 @@ async function fetchRayWhitePreview(
   try {
     const html = await fetchHtml(sourceUrl);
     if (isUsableRayWhiteHtml(html)) {
-      return parseRayWhite(html, sourceUrl);
+      const htmlPreview = parseRayWhite(html, sourceUrl);
+      if (
+        listingRef &&
+        (!htmlPreview.openHomes?.length || !htmlPreview.auctionAt)
+      ) {
+        const apiPreview = await fetchRayWhiteListingFromApi(
+          listingRef,
+          sourceUrl
+        );
+        if (apiPreview) {
+          return {
+            ...htmlPreview,
+            openHomes: htmlPreview.openHomes?.length
+              ? htmlPreview.openHomes
+              : apiPreview.openHomes,
+            auctionAt: htmlPreview.auctionAt || apiPreview.auctionAt,
+            auctionLocation:
+              htmlPreview.auctionLocation || apiPreview.auctionLocation,
+          };
+        }
+      }
+      return htmlPreview;
     }
   } catch (e) {
     htmlError = e instanceof Error ? e : new Error("Could not fetch listing page");

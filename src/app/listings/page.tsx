@@ -105,6 +105,7 @@ export default async function CurrentListingsPage({
                 status={listing.status}
                 priceLabel={listing.listedPriceLabel}
                 agents={agentsForCard(listing)}
+                openHomes={listing.openHomes}
               />
             ))}
           </div>

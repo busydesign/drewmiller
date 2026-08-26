@@ -3,9 +3,11 @@ import { getAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { fetchListingPreview } from "@/lib/listing-import/fetch-listing-preview";
 import { geocodePropertyAddress } from "@/lib/geocode";
+import { applyListingCampaignTimes } from "@/lib/listing-import/save-open-homes";
 import {
   parseAdminListingStatus,
   toAdminListingStatus,
+  isCurrentListingStatus,
   type AdminListingStatus,
 } from "@/lib/listing-status";
 import { slugify } from "@/lib/slugify";
@@ -271,6 +273,30 @@ export async function POST(req: Request) {
         })),
       });
     }
+
+    const openHomes = (preview.openHomes || [])
+      .map((home) => ({
+        startsAt: new Date(home.startsAt),
+        endsAt: new Date(home.endsAt),
+      }))
+      .filter(
+        (home) =>
+          !Number.isNaN(home.startsAt.getTime()) &&
+          !Number.isNaN(home.endsAt.getTime()) &&
+          home.endsAt.getTime() > home.startsAt.getTime()
+      );
+    const auctionAt = preview.auctionAt ? new Date(preview.auctionAt) : null;
+    await applyListingCampaignTimes(listing.id, {
+      isCurrent: isCurrentListingStatus(status),
+      openHomes,
+      auction:
+        auctionAt && !Number.isNaN(auctionAt.getTime())
+          ? {
+              auctionAt,
+              auctionLocation: preview.auctionLocation || null,
+            }
+          : null,
+    });
 
     // Only mirror sold imports into the sales/comps table
     if (preview.status === "SOLD" && !existing) {

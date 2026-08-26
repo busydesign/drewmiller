@@ -8,6 +8,7 @@ import { ListingCard } from "@/components/ListingCard";
 import { ListingFeatures } from "@/components/ListingFeatures";
 import { ListingGallery } from "@/components/ListingGallery";
 import { ListingLocationMap } from "@/components/ListingLocationMap";
+import { ListingOpenHomes } from "@/components/ListingOpenHomes";
 import { suburbNameFromAreaPage } from "@/lib/area-suburb";
 import { prisma } from "@/lib/db";
 import { formatDate, formatPriceCents } from "@/lib/format";
@@ -25,6 +26,7 @@ import {
   getCurrentListingsForSuburb,
 } from "@/lib/listings-query";
 import { listingJsonLd } from "@/lib/structured-data";
+import { upcomingOpenHomes } from "@/lib/open-homes";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -75,6 +77,7 @@ export default async function SlugPage({ params }: Props) {
     where: { slug },
     include: {
       images: { orderBy: { sortOrder: "asc" } },
+      openHomes: { orderBy: { startsAt: "asc" } },
       leadAgent: true,
       agentLinks: {
         orderBy: { sortOrder: "asc" },
@@ -118,6 +121,7 @@ export default async function SlugPage({ params }: Props) {
     const agent = listingAgents[0] || listing.leadAgent;
     const agentPhone = agent?.phone?.replace(/\s+/g, "") || "021963654";
     const agentPhoneLabel = agent?.phone || "021 963 654";
+    const upcomingHomes = upcomingOpenHomes(listing.openHomes);
     const coverImageUrl = pickCoverImage(
       listing.coverImageUrl,
       listing.images.map((image) => image.url)
@@ -147,6 +151,9 @@ export default async function SlugPage({ params }: Props) {
             longitude: listing.longitude,
             status: listing.status,
             propertyType: listing.propertyType,
+            openHomes: upcomingHomes,
+            auctionAt: listing.auctionAt,
+            auctionLocation: listing.auctionLocation,
           })}
         />
         <section className="relative min-h-[48vh] overflow-hidden bg-charcoal text-white">
@@ -273,12 +280,19 @@ export default async function SlugPage({ params }: Props) {
                   <p className="eyebrow">Inspect / enquire</p>
                   <h2 className="display mt-2 text-3xl">Interested in this property?</h2>
                   <p className="mt-3 text-sm text-ink-soft">
-                    Arrange a viewing with{" "}
-                    {agent?.name || "Drew"}
-                    {agent && !agent.isLead ? " from Drew’s team" : ""}
-                    , or open the full Ray White listing for open homes and
-                    enquiry forms.
+                    {upcomingHomes.length > 0
+                      ? `Come through at an upcoming open home, or arrange a private viewing with ${
+                          agent?.name || "Drew"
+                        }.`
+                      : `Arrange a viewing with ${
+                          agent?.name || "Drew"
+                        }${agent && !agent.isLead ? " from Drew’s team" : ""}.`}
                   </p>
+                  <ListingOpenHomes
+                    homes={listing.openHomes}
+                    auctionAt={listing.auctionAt}
+                    auctionLocation={listing.auctionLocation}
+                  />
                   {listingAgents.length > 0 && (
                     <div className="mt-5 space-y-3 border-b border-line pb-4">
                       {listingAgents.map((person, index) => (
@@ -439,6 +453,7 @@ export default async function SlugPage({ params }: Props) {
                     status={listing.status}
                     priceLabel={listing.listedPriceLabel}
                     agents={agentsForCard(listing)}
+                    openHomes={listing.openHomes}
                   />
                 ))}
               </div>

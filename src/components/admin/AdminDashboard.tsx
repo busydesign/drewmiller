@@ -14,6 +14,12 @@ import {
   toAdminListingStatus,
   type AdminListingStatus,
 } from "@/lib/listing-status";
+import {
+  formatOpenHome,
+  nextOpenHomeLabel,
+  toNzDateTimeLocal,
+  upcomingOpenHomes,
+} from "@/lib/open-homes";
 
 type ListingAgentRow = {
   id: string;
@@ -32,6 +38,12 @@ type ListingRow = {
   importSource: string | null;
   coverImageUrl: string | null;
   updatedAt: string;
+  openHomes: Array<{
+    id: string;
+    startsAt: string;
+    endsAt: string;
+    source: "IMPORT" | "MANUAL";
+  }>;
   agents: ListingAgentRow[];
 };
 
@@ -139,6 +151,9 @@ export function AdminDashboard({
   const [editAgentIds, setEditAgentIds] = useState<string[]>([]);
   const [editStatus, setEditStatus] =
     useState<AdminListingStatus>("FOR_SALE");
+  const [editManualHomes, setEditManualHomes] = useState<
+    Array<{ startsAt: string; endsAt: string }>
+  >([]);
   const [rowBusyId, setRowBusyId] = useState<string | null>(null);
   const [salesCountLabel, setSalesCountLabel] = useState(
     settings?.salesCountLabel || "175+"
@@ -314,6 +329,9 @@ export function AdminDashboard({
         body: JSON.stringify({
           agentIds: editAgentIds,
           status: editStatus,
+          openHomesManual: editManualHomes.filter(
+            (home) => home.startsAt && home.endsAt
+          ),
         }),
       });
       const data = await res.json();
@@ -326,6 +344,7 @@ export function AdminDashboard({
       );
       setEditingId(null);
       setEditAgentIds([]);
+      setEditManualHomes([]);
       router.refresh();
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Failed");
@@ -370,6 +389,14 @@ export function AdminDashboard({
         : agents.filter((a) => a.isLead).map((a) => a.id)
     );
     setEditStatus(toAdminListingStatus(listing.status));
+    setEditManualHomes(
+      listing.openHomes
+        .filter((home) => home.source === "MANUAL")
+        .map((home) => ({
+          startsAt: toNzDateTimeLocal(new Date(home.startsAt)),
+          endsAt: toNzDateTimeLocal(new Date(home.endsAt)),
+        }))
+    );
     setMessage(null);
   }
 
@@ -403,6 +430,26 @@ export function AdminDashboard({
   async function logout() {
     await fetch("/api/admin/logout", { method: "POST" });
     router.refresh();
+  }
+
+  async function syncFromRayWhite() {
+    setBusy(true);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/cron/sync-listings", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Sync failed");
+      setMessage(
+        `Ray White sync complete · ${data.updated || 0} updated · ${
+          data.created || 0
+        } created`
+      );
+      router.refresh();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Sync failed");
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -638,6 +685,34 @@ export function AdminDashboard({
                         : 0}
                     </p>
                     <p className="md:col-span-2">
+                      <span className="font-bold">Open homes:</span>{" "}
+                      {(() => {
+                        const homes = Array.isArray(preview.openHomes)
+                          ? (preview.openHomes as Array<{
+                              startsAt?: string;
+                              endsAt?: string;
+                            }>)
+                          : [];
+                        const upcoming = upcomingOpenHomes(
+                          homes
+                            .map((home) => ({
+                              startsAt: new Date(home.startsAt || ""),
+                              endsAt: new Date(home.endsAt || ""),
+                            }))
+                            .filter(
+                              (home) =>
+                                !Number.isNaN(home.startsAt.getTime()) &&
+                                !Number.isNaN(home.endsAt.getTime())
+                            )
+                        );
+                        return upcoming.length > 0
+                          ? upcoming
+                              .map((home) => formatOpenHome(home).compact)
+                              .join(" · ")
+                          : "—";
+                      })()}
+                    </p>
+                    <p className="md:col-span-2">
                       <span className="font-bold">Ray White agents:</span>{" "}
                       {(() => {
                         const hints = (preview.hints || {}) as {
@@ -662,7 +737,15 @@ export function AdminDashboard({
                     {filtered.length} shown · {listings.length} total
                   </p>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    className="border border-line px-3 py-1.5 text-xs font-bold uppercase tracking-[0.1em]"
+                    onClick={syncFromRayWhite}
+                    disabled={busy}
+                  >
+                    {busy ? "Syncing…" : "Sync from Ray White"}
+                  </button>
                   {(
                     [
                       ["ALL", "All"],
@@ -754,6 +837,23 @@ export function AdminDashboard({
                                   .join(" · ")
                               : "—"}
                           </p>
+                          {isCurrent &&
+                          nextOpenHomeLabel(
+                            listing.openHomes.map((home) => ({
+                              startsAt: new Date(home.startsAt),
+                              endsAt: new Date(home.endsAt),
+                            }))
+                          ) ? (
+                            <p className="mt-1 text-sm text-ink-soft">
+                              Next open:{" "}
+                              {nextOpenHomeLabel(
+                                listing.openHomes.map((home) => ({
+                                  startsAt: new Date(home.startsAt),
+                                  endsAt: new Date(home.endsAt),
+                                }))
+                              )}
+                            </p>
+                          ) : null}
                           {listing.sourceUrl ? (
                             <a
                               href={listing.sourceUrl}
@@ -856,13 +956,116 @@ export function AdminDashboard({
                                 );
                               })}
                             </div>
+                          </div>
+
+                          <div>
+                            <p className="text-xs font-bold uppercase tracking-[0.12em] text-ink-soft">
+                              Open homes
+                            </p>
+                            <p className="mt-1 text-xs text-ink-soft">
+                              Times from Ray White update on the daily sync.
+                              Extra times below stay even when Ray White
+                              changes.
+                            </p>
+                            {listing.openHomes.filter(
+                              (home) => home.source === "IMPORT"
+                            ).length > 0 ? (
+                              <ul className="mt-2 space-y-1 text-sm">
+                                {listing.openHomes
+                                  .filter((home) => home.source === "IMPORT")
+                                  .map((home) => (
+                                    <li key={home.id} className="text-ink-soft">
+                                      {formatOpenHome({
+                                        startsAt: new Date(home.startsAt),
+                                        endsAt: new Date(home.endsAt),
+                                      }).compact}{" "}
+                                      <span className="text-[10px] font-bold uppercase tracking-[0.12em]">
+                                        Ray White
+                                      </span>
+                                    </li>
+                                  ))}
+                              </ul>
+                            ) : (
+                              <p className="mt-2 text-sm text-ink-soft">
+                                No Ray White open homes on file.
+                              </p>
+                            )}
+                            <div className="mt-3 space-y-2">
+                              {editManualHomes.map((home, index) => (
+                                <div
+                                  key={`${home.startsAt}-${index}`}
+                                  className="flex flex-col gap-2 sm:flex-row sm:items-center"
+                                >
+                                  <label className="flex-1 text-xs text-ink-soft">
+                                    Start
+                                    <input
+                                      type="datetime-local"
+                                      value={home.startsAt}
+                                      onChange={(e) => {
+                                        const startsAt = e.target.value;
+                                        setEditManualHomes((rows) =>
+                                          rows.map((row, i) =>
+                                            i === index
+                                              ? {
+                                                  startsAt,
+                                                  endsAt: row.endsAt || startsAt,
+                                                }
+                                              : row
+                                          )
+                                        );
+                                      }}
+                                      className="mt-1 w-full border border-line bg-paper px-2 py-1.5 text-sm"
+                                    />
+                                  </label>
+                                  <label className="flex-1 text-xs text-ink-soft">
+                                    Finish
+                                    <input
+                                      type="datetime-local"
+                                      value={home.endsAt}
+                                      onChange={(e) => {
+                                        const endsAt = e.target.value;
+                                        setEditManualHomes((rows) =>
+                                          rows.map((row, i) =>
+                                            i === index ? { ...row, endsAt } : row
+                                          )
+                                        );
+                                      }}
+                                      className="mt-1 w-full border border-line bg-paper px-2 py-1.5 text-sm"
+                                    />
+                                  </label>
+                                  <button
+                                    type="button"
+                                    className="border border-line px-3 py-1.5 text-xs font-bold uppercase tracking-[0.1em] text-[#b42318]"
+                                    onClick={() =>
+                                      setEditManualHomes((rows) =>
+                                        rows.filter((_, i) => i !== index)
+                                      )
+                                    }
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                              ))}
+                              <button
+                                type="button"
+                                className="border border-line px-3 py-1.5 text-xs font-bold uppercase tracking-[0.1em]"
+                                onClick={() =>
+                                  setEditManualHomes((rows) => [
+                                    ...rows,
+                                    { startsAt: "", endsAt: "" },
+                                  ])
+                                }
+                              >
+                                Add extra time
+                              </button>
+                            </div>
                             <button
                               type="button"
                               className="btn btn-secondary mt-3 !px-3 !py-2 text-xs"
                               disabled={rowBusy}
                               onClick={() => saveListingDetails(listing.id)}
                             >
-                              {rowBusy ? "Saving…" : "Save status & agents"}
+                              {rowBusy ? "Saving…" : "Save listing details"}
                             </button>
                           </div>
 
@@ -906,6 +1109,7 @@ export function AdminDashboard({
                                   setEditingId(null);
                                   setEditUrl("");
                                   setEditAgentIds([]);
+                                  setEditManualHomes([]);
                                 }}
                                 disabled={rowBusy}
                               >

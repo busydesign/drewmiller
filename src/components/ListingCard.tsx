@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { formatDate, formatPriceCents } from "@/lib/format";
+import { nextOpenHomeLabel, type OpenHomeTimes } from "@/lib/open-homes";
 
 export type ListingCardAgent = {
   slug: string;
@@ -26,6 +27,7 @@ type Props = {
   agent?: ListingCardAgent | null;
   /** All agents on the listing — stacked thumbs on cards. */
   agents?: ListingCardAgent[] | null;
+  openHomes?: OpenHomeTimes[] | null;
 };
 
 export function ListingCard({
@@ -42,6 +44,7 @@ export function ListingCard({
   priceLabel,
   agent,
   agents,
+  openHomes,
 }: Props) {
   const isWithdrawn = status === "WITHDRAWN" || status === "ARCHIVED";
   const isForSale =
@@ -64,6 +67,7 @@ export function ListingCard({
   const displayAgents =
     agents && agents.length > 0 ? agents : agent ? [agent] : [];
   const labelNames = displayAgents.map((a) => a.name.split(" ")[0]).join(" · ");
+  const openHome = isForSale ? nextOpenHomeLabel(openHomes || []) : null;
 
   return (
     <Link
@@ -139,6 +143,9 @@ export function ListingCard({
             </span>
           )}
         </div>
+        {openHome ? (
+          <p className="text-sm text-ink">Open home {openHome}</p>
+        ) : null}
         {labelNames && (
           <p className="pt-1 text-[12px] text-muted">{labelNames}</p>
         )}

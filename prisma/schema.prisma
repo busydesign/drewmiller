@@ -16,6 +16,11 @@ enum ListingStatus {
   WITHDRAWN
 }
 
+enum OpenHomeSource {
+  IMPORT
+  MANUAL
+}
+
 enum PageKind {
   CORE
   AREA
@@ -98,6 +103,9 @@ model Listing {
   /** Original Ray White listing / marketing start date */
   listedAt        DateTime?
   listedPriceLabel String?
+  /** Auction start from Ray White, if the campaign is an auction */
+  auctionAt       DateTime?
+  auctionLocation String?
   coverImageUrl   String?
   latitude        Float?
   longitude       Float?
@@ -116,6 +124,7 @@ model Listing {
   updatedAt       DateTime      @updatedAt
   images          ListingImage[]
   agentLinks      ListingAgent[]
+  openHomes       ListingOpenHome[]
 
   @@index([status, soldDate])
   @@index([suburb])
@@ -135,6 +144,19 @@ model ListingAgent {
 
   @@id([listingId, agentId])
   @@index([agentId])
+}
+
+model ListingOpenHome {
+  id        String         @id @default(cuid())
+  listingId String
+  listing   Listing        @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  startsAt  DateTime
+  endsAt    DateTime
+  source    OpenHomeSource @default(IMPORT)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([listingId, startsAt])
 }
 
 model ListingImage {

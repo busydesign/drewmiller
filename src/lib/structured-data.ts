@@ -1,6 +1,7 @@
 import { AGENT_STATS, RATE_MY_AGENT_URL } from "@/lib/agent-proof";
 import { BRAND } from "@/lib/brand";
 import { siteUrl } from "@/lib/format";
+import { upcomingAuctionAt } from "@/lib/open-homes";
 
 export function realEstateAgentJsonLd() {
   return {
@@ -53,6 +54,9 @@ type ListingJsonInput = {
   longitude?: number | null;
   status: string;
   propertyType?: string | null;
+  openHomes?: Array<{ startsAt: Date; endsAt: Date }>;
+  auctionAt?: Date | null;
+  auctionLocation?: string | null;
 };
 
 export function listingJsonLd(listing: ListingJsonInput) {
@@ -105,6 +109,35 @@ export function listingJsonLd(listing: ListingJsonInput) {
     offer.priceCurrency = "NZD";
   }
 
+  const auctionUpcoming = upcomingAuctionAt(listing.auctionAt);
+  const events = [
+    ...(auctionUpcoming
+      ? [
+          {
+            "@type": "Event",
+            name: "Auction",
+            startDate: auctionUpcoming.toISOString(),
+            location: {
+              "@type": "Place",
+              name: listing.auctionLocation || listing.address,
+              address: place.address,
+            },
+          },
+        ]
+      : []),
+    ...(listing.openHomes || []).map((home) => ({
+      "@type": "Event",
+      name: "Open home",
+      startDate: home.startsAt.toISOString(),
+      endDate: home.endsAt.toISOString(),
+      location: {
+        "@type": "Place",
+        name: listing.address,
+        address: place.address,
+      },
+    })),
+  ];
+
   return {
     "@context": "https://schema.org",
     "@type": "RealEstateListing",
@@ -133,5 +166,6 @@ export function listingJsonLd(listing: ListingJsonInput) {
     },
     contentLocation: place,
     offers: offer,
+    ...(events.length > 0 ? { event: events } : {}),
   };
 }

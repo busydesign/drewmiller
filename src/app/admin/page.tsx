@@ -36,6 +36,15 @@ export default async function AdminPage() {
         importSource: true,
         coverImageUrl: true,
         updatedAt: true,
+        openHomes: {
+          orderBy: { startsAt: "asc" },
+          select: {
+            id: true,
+            startsAt: true,
+            endsAt: true,
+            source: true,
+          },
+        },
         agentLinks: {
           orderBy: { sortOrder: "asc" },
           select: {
@@ -87,6 +96,12 @@ export default async function AdminPage() {
           importSource: l.importSource,
           coverImageUrl: l.coverImageUrl,
           updatedAt: l.updatedAt.toISOString(),
+          openHomes: l.openHomes.map((home) => ({
+            id: home.id,
+            startsAt: home.startsAt.toISOString(),
+            endsAt: home.endsAt.toISOString(),
+            source: home.source,
+          })),
           agents: l.agentLinks.map((link) => ({
             id: link.agent.id,
             name: link.agent.name,

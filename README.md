@@ -8,6 +8,7 @@ A public marketing + tools site for Drew Miller, built to escape Squarespace 7.0
 - **Sales map** + address → nearby previous sales
 - **Appraisal lead form**
 - **Admin live desk** (`/admin`) with Trade Me / homes.co.nz / OneRoof / Ray White URL import (House Kiwi DNA)
+- **Current listings** pulled from Ray White, including upcoming open homes (daily refresh)
 - **RateMyAgent** surfaced as a primary CTA
 - Sitemap + canonical metadata for SEO
 
@@ -53,6 +54,22 @@ Admin login (from `.env`):
 # From your machine, with Railway DATABASE_URL:
 DATABASE_URL="postgresql://..." npm run db:push-sqlite
 ```
+
+## Daily listing sync
+
+Open homes change often, so current listings are refreshed from the Ray White Mairangi Bay API.
+
+1. Set `CRON_SECRET` on the Railway web service
+2. Add GitHub Actions secrets `SITE_URL` (public site URL) and `CRON_SECRET` (same value)
+3. The workflow `.github/workflows/sync-listings.yml` runs daily, or click **Sync from Ray White** in `/admin`
+
+You can also run it locally:
+
+```bash
+npm run db:sync-team
+```
+
+Extra open-home times can still be added per listing in admin. Those stay put when Ray White times are refreshed.
 
 ## Content sources
 

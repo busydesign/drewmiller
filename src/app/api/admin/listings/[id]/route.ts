@@ -2,8 +2,30 @@ import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { parseAdminListingStatus } from "@/lib/listing-status";
+import { fromNzDateTimeLocal } from "@/lib/open-homes";
 
 type Params = { params: Promise<{ id: string }> };
+
+function parseManualOpenHomes(value: unknown) {
+  if (!Array.isArray(value)) return null;
+  return value
+    .map((row) => {
+      if (!row || typeof row !== "object") return null;
+      const startsRaw = String(
+        (row as { startsAt?: unknown }).startsAt || ""
+      ).trim();
+      const endsRaw = String((row as { endsAt?: unknown }).endsAt || "").trim();
+      const startsAt = fromNzDateTimeLocal(startsRaw);
+      const endsAt = fromNzDateTimeLocal(endsRaw);
+      if (!startsAt || !endsAt || endsAt.getTime() <= startsAt.getTime()) {
+        return null;
+      }
+      return { startsAt, endsAt };
+    })
+    .filter(
+      (row): row is { startsAt: Date; endsAt: Date } => Boolean(row)
+    );
+}
 
 export async function PATCH(req: Request, { params }: Params) {
   const session = await getAdminSession();
@@ -27,10 +49,21 @@ export async function PATCH(req: Request, { params }: Params) {
   const body = await req.json().catch(() => ({}));
   const hasAgents = Array.isArray(body.agentIds);
   const status = parseAdminListingStatus(body.status);
+  const hasOpenHomes = Array.isArray(body.openHomesManual);
+  const manualHomes = hasOpenHomes
+    ? parseManualOpenHomes(body.openHomesManual)
+    : null;
 
-  if (!hasAgents && !status) {
+  if (!hasAgents && !status && !hasOpenHomes) {
     return NextResponse.json(
-      { error: "agentIds or status is required" },
+      { error: "agentIds, status, or openHomesManual is required" },
+      { status: 400 }
+    );
+  }
+
+  if (hasOpenHomes && manualHomes == null) {
+    return NextResponse.json(
+      { error: "Each extra open home needs a start and finish time." },
       { status: 400 }
     );
   }
@@ -108,12 +141,29 @@ export async function PATCH(req: Request, { params }: Params) {
     });
   }
 
+  if (manualHomes) {
+    await prisma.listingOpenHome.deleteMany({
+      where: { listingId: listing.id, source: "MANUAL" },
+    });
+    if (manualHomes.length > 0) {
+      await prisma.listingOpenHome.createMany({
+        data: manualHomes.map((home) => ({
+          listingId: listing.id,
+          startsAt: home.startsAt,
+          endsAt: home.endsAt,
+          source: "MANUAL" as const,
+        })),
+      });
+    }
+  }
+
   return NextResponse.json({
     ok: true,
     id: listing.id,
     slug: listing.slug,
     status: status || undefined,
     agents,
+    openHomesManual: manualHomes?.length ?? undefined,
   });
 }
 

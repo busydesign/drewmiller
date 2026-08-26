@@ -1,4 +1,11 @@
 import { decodeHtmlEntities } from "@/lib/listing-import/decode-html";
+import {
+  openHomesToIso,
+  parseRayWhiteAuction,
+  parseRayWhiteInspections,
+  type RayWhiteAuction,
+  type RayWhiteInspection,
+} from "@/lib/listing-import/parse-inspections";
 import type { ListingImportPreview } from "@/lib/listing-import/types";
 
 type OfficeAddress = {
@@ -41,6 +48,8 @@ type OfficeListing = {
   categories?: Array<{ category?: string }>;
   agents?: Array<{ fullName?: string; memberId?: number }>;
   links?: Array<{ url?: string; code?: string }>;
+  inspections?: RayWhiteInspection[];
+  auction?: RayWhiteAuction | null;
 };
 
 function cleanText(s: string) {
@@ -193,6 +202,8 @@ export function parseRayWhiteOffice(
     .filter((a) => a.fullName);
   const agentName = agents[0]?.fullName || "Drew Miller";
   const agentMemberId = agents[0]?.memberId ?? null;
+  const openHomes = parseRayWhiteInspections(listing.inspections);
+  const auction = parseRayWhiteAuction(listing.auction);
 
   const summaryBits = [
     headline || null,
@@ -223,6 +234,9 @@ export function parseRayWhiteOffice(
     landArea: land,
     latitude: listing.address?.location?.lat ?? null,
     longitude: listing.address?.location?.lon ?? null,
+    openHomes: openHomesToIso(openHomes),
+    auctionAt: auction?.auctionAt.toISOString() ?? null,
+    auctionLocation: auction?.auctionLocation ?? null,
     hints: {
       bedrooms: listing.bedrooms ?? null,
       bathrooms: listing.bathrooms ?? null,

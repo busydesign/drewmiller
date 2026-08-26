@@ -13,6 +13,9 @@ export const listingCardInclude = {
       },
     },
   },
+  openHomes: {
+    orderBy: { startsAt: "asc" as const },
+  },
 } satisfies Prisma.ListingInclude;
 
 type ListingWithAgents = Prisma.ListingGetPayload<{

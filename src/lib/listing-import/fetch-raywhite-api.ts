@@ -1,4 +1,11 @@
 import { decodeHtmlEntities } from "@/lib/listing-import/decode-html";
+import {
+  openHomesToIso,
+  parseRayWhiteAuction,
+  parseRayWhiteInspections,
+  type RayWhiteAuction,
+  type RayWhiteInspection,
+} from "@/lib/listing-import/parse-inspections";
 import type { ListingImportPreview } from "@/lib/listing-import/types";
 import type { RayWhiteListingRef } from "@/lib/listing-import/raywhite-source-id";
 
@@ -38,6 +45,8 @@ type ApiListing = {
   categories?: Array<{ category?: string }>;
   agents?: Array<{ fullName?: string; memberId?: number }>;
   links?: Array<{ url?: string; code?: string }>;
+  inspections?: RayWhiteInspection[];
+  auction?: RayWhiteAuction | null;
 };
 
 function cleanText(s: string) {
@@ -141,6 +150,9 @@ function listingToPreview(
     }))
     .filter((a) => a.fullName);
 
+  const openHomes = parseRayWhiteInspections(listing.inspections);
+  const auction = parseRayWhiteAuction(listing.auction);
+
   const sold =
     listing.statusCode === "SLD" ||
     /sold/i.test(listing.status || "") ||
@@ -171,6 +183,9 @@ function listingToPreview(
     landArea: land,
     latitude: listing.address?.location?.lat ?? null,
     longitude: listing.address?.location?.lon ?? null,
+    openHomes: openHomesToIso(openHomes),
+    auctionAt: auction?.auctionAt.toISOString() ?? null,
+    auctionLocation: auction?.auctionLocation ?? null,
     hints: {
       bedrooms: listing.bedrooms ?? null,
       bathrooms: listing.bathrooms ?? null,

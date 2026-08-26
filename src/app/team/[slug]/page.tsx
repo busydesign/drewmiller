@@ -149,6 +149,7 @@ export default async function TeamMemberPage({ params }: Props) {
                     status={listing.status}
                     priceLabel={listing.listedPriceLabel}
                     agents={ordered}
+                    openHomes={listing.openHomes}
                   />
                 );
               })}

@@ -58,6 +58,9 @@ export type ListingImportPreview = {
   landArea?: string | null;
   latitude?: number | null;
   longitude?: number | null;
+  openHomes?: Array<{ startsAt: string; endsAt: string }>;
+  auctionAt?: string | null;
+  auctionLocation?: string | null;
   /** When the listing appears sold / for sale */
   status?: "SOLD" | "FOR_SALE" | "INSPECTIONS";
   hints: ListingImportHints;
