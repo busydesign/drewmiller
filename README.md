@@ -60,8 +60,7 @@ DATABASE_URL="postgresql://..." npm run db:push-sqlite
 Open homes change often, so current listings are refreshed from the Ray White Mairangi Bay API.
 
 1. Set `CRON_SECRET` on the Railway web service
-2. Add GitHub Actions secrets `SITE_URL` (public site URL) and `CRON_SECRET` (same value)
-3. The workflow `.github/workflows/sync-listings.yml` runs daily, or click **Sync from Ray White** in `/admin`
+2. Click **Sync from Ray White** in `/admin`, or schedule a daily POST to `/api/cron/sync-listings` with `Authorization: Bearer $CRON_SECRET`
 
 You can also run it locally:
 
