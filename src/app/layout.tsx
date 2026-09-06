@@ -20,7 +20,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
+  metadataBase: new URL("https://www.drewmiller.co.nz"),
   title: {
     default: "Drew Miller | Ray White Mairangi Bay — Elite North Shore Agent",
     template: "%s | Drew Miller",
