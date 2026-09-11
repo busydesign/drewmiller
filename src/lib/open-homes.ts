@@ -148,6 +148,21 @@ export function fromNzDateTimeLocal(value: string): Date | null {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
+/**
+ * Ray White inspection/auction strings are NZ wall-clock times.
+ * Their `startAt` offset is often wrong around DST (they send +13
+ * while NZ is still +12), so ignore any zone and use Auckland local.
+ */
+export function parseNzWallDateTime(raw?: string | null): Date | null {
+  if (!raw) return null;
+  const match = raw
+    .trim()
+    .match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?/);
+  if (!match) return null;
+  const [, year, month, day, hour, minute] = match;
+  return fromNzDateTimeLocal(`${year}-${month}-${day}T${hour}:${minute}`);
+}
+
 function aucklandOffsetIso(at: Date): string {
   const tz =
     new Intl.DateTimeFormat("en-NZ", {

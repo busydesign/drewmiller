@@ -1,3 +1,5 @@
+import { parseNzWallDateTime } from "@/lib/open-homes";
+
 export type RayWhiteInspection = {
   start?: string;
   finish?: string;
@@ -22,17 +24,6 @@ export type ParsedAuction = {
   auctionLocation: string | null;
 };
 
-function parseApiDate(raw?: string | null): Date | null {
-  if (!raw) return null;
-  const value = raw.trim();
-  if (!value) return null;
-  const withZone = /[zZ]|[+-]\d{2}:?\d{2}$/.test(value)
-    ? value
-    : `${value}+12:00`;
-  const date = new Date(withZone);
-  return Number.isNaN(date.getTime()) ? null : date;
-}
-
 export function parseRayWhiteInspections(
   rows?: RayWhiteInspection[] | null
 ): ParsedOpenHome[] {
@@ -40,8 +31,8 @@ export function parseRayWhiteInspections(
 
   const homes: ParsedOpenHome[] = [];
   for (const row of rows) {
-    const startsAt = parseApiDate(row.startAt || row.start);
-    const endsAt = parseApiDate(row.finishAt || row.finish);
+    const startsAt = parseNzWallDateTime(row.start || row.startAt);
+    const endsAt = parseNzWallDateTime(row.finish || row.finishAt);
     if (!startsAt || !endsAt || endsAt.getTime() <= startsAt.getTime()) {
       continue;
     }
@@ -55,7 +46,9 @@ export function parseRayWhiteAuction(
   auction?: RayWhiteAuction | null
 ): ParsedAuction | null {
   if (!auction) return null;
-  const auctionAt = parseApiDate(auction.at || auction.date || auction.atUtc);
+  const auctionAt = parseNzWallDateTime(
+    auction.date || auction.at || auction.atUtc
+  );
   if (!auctionAt) return null;
   const auctionLocation = auction.location?.trim() || null;
   return { auctionAt, auctionLocation };
