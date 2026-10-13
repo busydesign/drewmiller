@@ -442,7 +442,7 @@ export function AdminDashboard({
       setMessage(
         `Ray White sync complete · ${data.updated || 0} updated · ${
           data.created || 0
-        } created`
+        } created · ${data.closed || 0} closed`
       );
       router.refresh();
     } catch (err) {

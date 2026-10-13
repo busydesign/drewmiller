@@ -1,10 +1,35 @@
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { parseAdminListingStatus } from "@/lib/listing-status";
+import {
+  parseAdminListingStatus,
+  type AdminListingStatus,
+} from "@/lib/listing-status";
 import { fromNzDateTimeLocal } from "@/lib/open-homes";
 
 type Params = { params: Promise<{ id: string }> };
+
+function statusUpdate(
+  listing: { address: string; title: string },
+  status: AdminListingStatus
+) {
+  const offMarket = status === "SOLD" || status === "WITHDRAWN";
+  return {
+    status,
+    featured: status === "FOR_SALE",
+    listedPriceLabel: offMarket ? null : undefined,
+    auctionAt: offMarket ? null : undefined,
+    auctionLocation: offMarket ? null : undefined,
+    soldDate: status === "SOLD" ? new Date() : undefined,
+    seoTitle: `${listing.address || listing.title} | ${
+      status === "SOLD"
+        ? "Sold"
+        : status === "WITHDRAWN"
+          ? "Withdrawn"
+          : "For sale"
+    } with Drew Miller`,
+  };
+}
 
 function parseManualOpenHomes(value: unknown) {
   if (!Array.isArray(value)) return null;
@@ -109,39 +134,23 @@ export async function PATCH(req: Request, { params }: Params) {
       where: { id: listing.id },
       data: {
         leadAgentId: ordered[0]?.id ?? null,
-        ...(status
-          ? {
-              status,
-              featured: status === "FOR_SALE",
-              seoTitle: `${listing.address || listing.title} | ${
-                status === "SOLD"
-                  ? "Sold"
-                  : status === "WITHDRAWN"
-                    ? "Withdrawn"
-                    : "For sale"
-              } with Drew Miller`,
-            }
-          : {}),
+        ...(status ? statusUpdate(listing, status) : {}),
       },
     });
   } else if (status) {
     await prisma.listing.update({
       where: { id: listing.id },
-      data: {
-        status,
-        featured: status === "FOR_SALE",
-        seoTitle: `${listing.address || listing.title} | ${
-          status === "SOLD"
-            ? "Sold"
-            : status === "WITHDRAWN"
-              ? "Withdrawn"
-              : "For sale"
-        } with Drew Miller`,
-      },
+      data: statusUpdate(listing, status),
     });
   }
 
-  if (manualHomes) {
+  if (status === "SOLD" || status === "WITHDRAWN") {
+    await prisma.listingOpenHome.deleteMany({
+      where: { listingId: listing.id },
+    });
+  }
+
+  if (manualHomes && status !== "SOLD" && status !== "WITHDRAWN") {
     await prisma.listingOpenHome.deleteMany({
       where: { listingId: listing.id, source: "MANUAL" },
     });

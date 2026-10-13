@@ -140,8 +140,31 @@ async function fetchMemberListings(
 export type TeamListingSyncResult = {
   created: number;
   updated: number;
+  closed: number;
   total: number;
 };
+
+async function markListingOffMarket(
+  listing: { id: string; address: string; title: string },
+  status: "SOLD" | "WITHDRAWN",
+  log: (message: string) => void
+) {
+  const label = status === "SOLD" ? "Sold" : "Withdrawn";
+  await prisma.listing.update({
+    where: { id: listing.id },
+    data: {
+      status,
+      featured: false,
+      listedPriceLabel: null,
+      auctionAt: null,
+      auctionLocation: null,
+      seoTitle: `${listing.address || listing.title} | ${label} with Drew Miller`,
+      ...(status === "SOLD" ? { soldDate: new Date() } : {}),
+    },
+  });
+  await prisma.listingOpenHome.deleteMany({ where: { listingId: listing.id } });
+  log(`× ${listing.address} · closed as ${status}`);
+}
 
 export async function syncTeamListings(
   log: (message: string) => void = console.log
@@ -157,15 +180,23 @@ export async function syncTeamListings(
   }
 
   const listings = new Map<number, ApiListing>();
+  const currentExternalIds = new Set<string>();
   for (const memberId of TEAM_MEMBER_IDS) {
     const current = await fetchMemberListings(memberId, "CUR");
     const sold = await fetchMemberListings(memberId, "SLD");
     log(`member ${memberId}: ${current.length} current, ${sold.length} sold`);
-    for (const row of [...current, ...sold]) listings.set(row.id, row);
+    for (const row of current) {
+      listings.set(row.id, row);
+      currentExternalIds.add(row.sourceId || `rw:${row.id}`);
+    }
+    for (const row of sold) {
+      if (!listings.has(row.id)) listings.set(row.id, row);
+    }
   }
 
   let created = 0;
   let updated = 0;
+  let closed = 0;
 
   for (const listing of listings.values()) {
     const address = formatAddress(listing.address) || listing.title || "Listing";
@@ -266,6 +297,15 @@ export async function syncTeamListings(
           ],
         },
       }));
+
+    if (
+      existing &&
+      !isSold &&
+      (existing.status === "SOLD" || existing.status === "WITHDRAWN")
+    ) {
+      log(`↷ ${address} · kept ${existing.status}`);
+      continue;
+    }
 
     let slug = existing?.slug;
     if (!slug) {
@@ -368,8 +408,24 @@ export async function syncTeamListings(
     }
   }
 
+  if (currentExternalIds.size > 0) {
+    const stale = await prisma.listing.findMany({
+      where: {
+        published: true,
+        status: { in: ["FOR_SALE", "UNDER_OFFER", "COMING_SOON"] },
+        importSource: "raywhite.co.nz",
+        externalId: { notIn: [...currentExternalIds] },
+      },
+      select: { id: true, address: true, title: true, externalId: true },
+    });
+    for (const listing of stale) {
+      await markListingOffMarket(listing, "SOLD", log);
+      closed++;
+    }
+  }
+
   log(
-    `Done. ${created} created, ${updated} updated, ${listings.size} team listings.`
+    `Done. ${created} created, ${updated} updated, ${closed} closed, ${listings.size} team listings.`
   );
-  return { created, updated, total: listings.size };
+  return { created, updated, closed, total: listings.size };
 }
