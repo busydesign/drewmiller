@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { addBasemap } from "@/lib/map-tiles";
 
 type Props = {
   address: string;
@@ -37,13 +38,7 @@ export function ListingLocationMap({
           scrollWheelZoom: false,
         }).setView([latitude, longitude], 15);
 
-        L.tileLayer(
-          "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-          {
-            attribution: "&copy; OpenStreetMap &copy; CARTO",
-            maxZoom: 19,
-          }
-        ).addTo(map);
+        addBasemap(L, map);
 
         L.circleMarker([latitude, longitude], {
           radius: 9,

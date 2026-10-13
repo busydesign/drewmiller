@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { LatLngExpression } from "leaflet";
+import { addBasemap } from "@/lib/map-tiles";
 
 export type MapPin = {
   id: string;
@@ -104,13 +105,7 @@ export function SalesMap({
         zoomControl: true,
       }).setView([-36.72, 174.72], 11);
 
-      L.tileLayer(
-        "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-        {
-          attribution: "&copy; OpenStreetMap &copy; CARTO",
-          maxZoom: 19,
-        }
-      ).addTo(map);
+      addBasemap(L, map);
 
       map.zoomControl.setPosition("bottomright");
 
