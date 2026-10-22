@@ -9,6 +9,7 @@ import { ListingFeatures } from "@/components/ListingFeatures";
 import { ListingGallery } from "@/components/ListingGallery";
 import { ListingLocationMap } from "@/components/ListingLocationMap";
 import { ListingOpenHomes } from "@/components/ListingOpenHomes";
+import { ListingOutboundLinks } from "@/components/ListingOutboundLinks";
 import { suburbNameFromAreaPage } from "@/lib/area-suburb";
 import { prisma } from "@/lib/db";
 import { formatDate, formatPriceCents } from "@/lib/format";
@@ -78,6 +79,7 @@ export default async function SlugPage({ params }: Props) {
     include: {
       images: { orderBy: { sortOrder: "asc" } },
       openHomes: { orderBy: { startsAt: "asc" } },
+      extraLinks: { orderBy: { sortOrder: "asc" } },
       leadAgent: true,
       agentLinks: {
         orderBy: { sortOrder: "asc" },
@@ -342,19 +344,17 @@ export default async function SlugPage({ params }: Props) {
                       }),
                     ]}
                   />
-                  {listing.sourceUrl && (
-                    <a
-                      href={listing.sourceUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="btn btn-primary mt-6 w-full"
-                    >
-                      View on Ray White
-                    </a>
-                  )}
+                  <ListingOutboundLinks
+                    sourceUrl={listing.sourceUrl}
+                    extraLinks={listing.extraLinks}
+                  />
                   <a
                     href={`tel:${agentPhone}`}
-                    className="btn btn-secondary mt-3 w-full"
+                    className={`btn btn-secondary w-full ${
+                      listing.sourceUrl || listing.extraLinks.length > 0
+                        ? "mt-3"
+                        : "mt-6"
+                    }`}
                   >
                     Call {agentPhoneLabel}
                   </a>

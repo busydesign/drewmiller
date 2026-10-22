@@ -125,6 +125,7 @@ model Listing {
   images          ListingImage[]
   agentLinks      ListingAgent[]
   openHomes       ListingOpenHome[]
+  extraLinks      ListingExternalLink[]
 
   @@index([status, soldDate])
   @@index([suburb])
@@ -157,6 +158,20 @@ model ListingOpenHome {
   updatedAt DateTime       @updatedAt
 
   @@index([listingId, startsAt])
+}
+
+/** Extra outbound links on a listing page, e.g. VaultRE property information. */
+model ListingExternalLink {
+  id        String   @id @default(cuid())
+  listingId String
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  label     String
+  url       String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([listingId, sortOrder])
 }
 
 model ListingImage {

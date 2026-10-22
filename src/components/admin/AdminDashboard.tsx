@@ -14,6 +14,7 @@ import {
   toAdminListingStatus,
   type AdminListingStatus,
 } from "@/lib/listing-status";
+import { labelForListingLink } from "@/lib/listing-links";
 import {
   formatOpenHome,
   nextOpenHomeLabel,
@@ -43,6 +44,11 @@ type ListingRow = {
     startsAt: string;
     endsAt: string;
     source: "IMPORT" | "MANUAL";
+  }>;
+  extraLinks: Array<{
+    id: string;
+    label: string;
+    url: string;
   }>;
   agents: ListingAgentRow[];
 };
@@ -154,6 +160,9 @@ export function AdminDashboard({
   const [editManualHomes, setEditManualHomes] = useState<
     Array<{ startsAt: string; endsAt: string }>
   >([]);
+  const [editExtraLinks, setEditExtraLinks] = useState<
+    Array<{ label: string; url: string }>
+  >([]);
   const [rowBusyId, setRowBusyId] = useState<string | null>(null);
   const [salesCountLabel, setSalesCountLabel] = useState(
     settings?.salesCountLabel || "175+"
@@ -186,6 +195,7 @@ export function AdminDashboard({
         listing.suburb,
         listing.slug,
         listing.sourceUrl,
+        ...listing.extraLinks.map((link) => `${link.label} ${link.url}`),
         listing.importSource,
         listing.status,
       ]
@@ -332,6 +342,7 @@ export function AdminDashboard({
           openHomesManual: editManualHomes.filter(
             (home) => home.startsAt && home.endsAt
           ),
+          extraLinks: editExtraLinks.filter((link) => link.url.trim()),
         }),
       });
       const data = await res.json();
@@ -345,6 +356,7 @@ export function AdminDashboard({
       setEditingId(null);
       setEditAgentIds([]);
       setEditManualHomes([]);
+      setEditExtraLinks([]);
       router.refresh();
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Failed");
@@ -396,6 +408,12 @@ export function AdminDashboard({
           startsAt: toNzDateTimeLocal(new Date(home.startsAt)),
           endsAt: toNzDateTimeLocal(new Date(home.endsAt)),
         }))
+    );
+    setEditExtraLinks(
+      listing.extraLinks.map((link) => ({
+        label: link.label,
+        url: link.url,
+      }))
     );
     setMessage(null);
   }
@@ -864,6 +882,17 @@ export function AdminDashboard({
                               {listing.sourceUrl}
                             </a>
                           ) : null}
+                          {listing.extraLinks.map((link) => (
+                            <a
+                              key={link.id}
+                              href={link.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="mt-1 block truncate text-xs text-ink-soft underline"
+                            >
+                              {link.label}: {link.url}
+                            </a>
+                          ))}
                         </div>
                         <div className="flex flex-wrap gap-2">
                           <button
@@ -1059,6 +1088,90 @@ export function AdminDashboard({
                                 Add extra time
                               </button>
                             </div>
+                            <p className="mt-5 text-xs font-bold uppercase tracking-[0.12em] text-ink-soft">
+                              Extra listing links
+                            </p>
+                            <p className="mt-1 text-xs text-ink-soft">
+                              Add VaultRE property information packs or other
+                              buyer links. Ray White stays on{" "}
+                              <strong>source URL</strong> above.
+                            </p>
+                            <div className="mt-3 space-y-2">
+                              {editExtraLinks.map((link, index) => (
+                                <div
+                                  key={`${link.url}-${index}`}
+                                  className="flex flex-col gap-2 sm:flex-row sm:items-end"
+                                >
+                                  <label className="flex-1 text-xs text-ink-soft">
+                                    URL
+                                    <input
+                                      type="url"
+                                      value={link.url}
+                                      onChange={(e) => {
+                                        const url = e.target.value;
+                                        setEditExtraLinks((rows) =>
+                                          rows.map((row, i) =>
+                                            i === index
+                                              ? {
+                                                  url,
+                                                  label: row.label,
+                                                }
+                                              : row
+                                          )
+                                        );
+                                      }}
+                                      placeholder="https://files.vaultre.com.au/cgi-bin/viewproperty.cgi?t=..."
+                                      className="mt-1 w-full border border-line bg-paper px-2 py-1.5 text-sm"
+                                    />
+                                  </label>
+                                  <label className="sm:w-48 text-xs text-ink-soft">
+                                    Button label
+                                    <input
+                                      value={link.label}
+                                      onChange={(e) => {
+                                        const label = e.target.value;
+                                        setEditExtraLinks((rows) =>
+                                          rows.map((row, i) =>
+                                            i === index
+                                              ? { ...row, label }
+                                              : row
+                                          )
+                                        );
+                                      }}
+                                      placeholder={
+                                        link.url.trim()
+                                          ? labelForListingLink(link.url)
+                                          : "Property information"
+                                      }
+                                      className="mt-1 w-full border border-line bg-paper px-2 py-1.5 text-sm"
+                                    />
+                                  </label>
+                                  <button
+                                    type="button"
+                                    className="border border-line px-3 py-1.5 text-xs font-bold uppercase tracking-[0.1em] text-[#b42318]"
+                                    onClick={() =>
+                                      setEditExtraLinks((rows) =>
+                                        rows.filter((_, i) => i !== index)
+                                      )
+                                    }
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                              ))}
+                              <button
+                                type="button"
+                                className="border border-line px-3 py-1.5 text-xs font-bold uppercase tracking-[0.1em]"
+                                onClick={() =>
+                                  setEditExtraLinks((rows) => [
+                                    ...rows,
+                                    { label: "", url: "" },
+                                  ])
+                                }
+                              >
+                                Add extra link
+                              </button>
+                            </div>
                             <button
                               type="button"
                               className="btn btn-secondary mt-3 !px-3 !py-2 text-xs"
@@ -1110,6 +1223,7 @@ export function AdminDashboard({
                                   setEditUrl("");
                                   setEditAgentIds([]);
                                   setEditManualHomes([]);
+                                  setEditExtraLinks([]);
                                 }}
                                 disabled={rowBusy}
                               >

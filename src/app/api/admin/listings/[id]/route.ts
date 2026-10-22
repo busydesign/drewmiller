@@ -5,6 +5,7 @@ import {
   parseAdminListingStatus,
   type AdminListingStatus,
 } from "@/lib/listing-status";
+import { parseListingLinks } from "@/lib/listing-links";
 import { fromNzDateTimeLocal } from "@/lib/open-homes";
 
 type Params = { params: Promise<{ id: string }> };
@@ -75,13 +76,18 @@ export async function PATCH(req: Request, { params }: Params) {
   const hasAgents = Array.isArray(body.agentIds);
   const status = parseAdminListingStatus(body.status);
   const hasOpenHomes = Array.isArray(body.openHomesManual);
+  const hasExtraLinks = Array.isArray(body.extraLinks);
   const manualHomes = hasOpenHomes
     ? parseManualOpenHomes(body.openHomesManual)
     : null;
+  const extraLinks = hasExtraLinks ? parseListingLinks(body.extraLinks) : null;
 
-  if (!hasAgents && !status && !hasOpenHomes) {
+  if (!hasAgents && !status && !hasOpenHomes && !hasExtraLinks) {
     return NextResponse.json(
-      { error: "agentIds, status, or openHomesManual is required" },
+      {
+        error:
+          "agentIds, status, openHomesManual, or extraLinks is required",
+      },
       { status: 400 }
     );
   }
@@ -89,6 +95,16 @@ export async function PATCH(req: Request, { params }: Params) {
   if (hasOpenHomes && manualHomes == null) {
     return NextResponse.json(
       { error: "Each extra open home needs a start and finish time." },
+      { status: 400 }
+    );
+  }
+
+  if (hasExtraLinks && extraLinks == null) {
+    return NextResponse.json(
+      {
+        error:
+          "Each extra link needs a valid http(s) URL, such as a VaultRE property information link.",
+      },
       { status: 400 }
     );
   }
@@ -166,6 +182,22 @@ export async function PATCH(req: Request, { params }: Params) {
     }
   }
 
+  if (extraLinks) {
+    await prisma.listingExternalLink.deleteMany({
+      where: { listingId: listing.id },
+    });
+    if (extraLinks.length > 0) {
+      await prisma.listingExternalLink.createMany({
+        data: extraLinks.map((link, sortOrder) => ({
+          listingId: listing.id,
+          label: link.label,
+          url: link.url,
+          sortOrder,
+        })),
+      });
+    }
+  }
+
   return NextResponse.json({
     ok: true,
     id: listing.id,
@@ -173,6 +205,7 @@ export async function PATCH(req: Request, { params }: Params) {
     status: status || undefined,
     agents,
     openHomesManual: manualHomes?.length ?? undefined,
+    extraLinks: extraLinks?.length ?? undefined,
   });
 }
 

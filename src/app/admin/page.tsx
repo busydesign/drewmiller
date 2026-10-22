@@ -45,6 +45,14 @@ export default async function AdminPage() {
             source: true,
           },
         },
+        extraLinks: {
+          orderBy: { sortOrder: "asc" },
+          select: {
+            id: true,
+            label: true,
+            url: true,
+          },
+        },
         agentLinks: {
           orderBy: { sortOrder: "asc" },
           select: {
@@ -102,6 +110,7 @@ export default async function AdminPage() {
             endsAt: home.endsAt.toISOString(),
             source: home.source,
           })),
+          extraLinks: l.extraLinks,
           agents: l.agentLinks.map((link) => ({
             id: link.agent.id,
             name: link.agent.name,
