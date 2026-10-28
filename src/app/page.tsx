@@ -69,10 +69,10 @@ export default async function HomePage() {
             Ray White Mairangi Bay &amp; Milford
           </p>
           <h1 className="display fade-up-delay mt-3 text-6xl font-medium tracking-[-0.04em] md:text-8xl md:leading-[0.95]">
-            Drew Miller
+            North Shore Real Estate Agent
           </h1>
           <p className="display fade-up-delay-2 mt-5 max-w-2xl text-2xl font-medium leading-snug tracking-tight text-white md:text-4xl md:leading-[1.15]">
-            Elite North Shore agent.
+            Drew Miller · Ray White Mairangi Bay
           </p>
           <p className="fade-up-delay-2 mt-4 whitespace-nowrap text-[13px] leading-relaxed text-white/90 sm:text-base md:text-xl">
             <span className="font-semibold text-white">
