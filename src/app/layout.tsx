@@ -22,11 +22,11 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.drewmiller.co.nz"),
   title: {
-    default: "Drew Miller | Ray White Mairangi Bay — Elite North Shore Agent",
+    default: "North Shore Real Estate Agent | Drew Miller | Ray White",
     template: "%s | Drew Miller",
   },
   description:
-    "Ray White Elite agent Drew Miller — 175+ North Shore sales, $205M+, Top 100 NZ. Appraisals, sold history, and local market clarity.",
+    "North Shore real estate agent Drew Miller — 175+ sales, $205M+, Ray White Elite, Top 100 NZ. Expert appraisals, sold history, and local market advice.",
   openGraph: {
     type: "website",
     locale: "en_NZ",
