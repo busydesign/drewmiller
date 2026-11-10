@@ -7,6 +7,7 @@ import {
   metaContent,
   metaNameContent,
 } from "@/lib/listing-import/parse-meta";
+import { isSoldPriceLabel } from "@/lib/listing-import/raywhite-sold";
 import type { ListingImportPreview } from "@/lib/listing-import/types";
 
 function cleanText(s: string) {
@@ -161,7 +162,7 @@ function parseRayWhiteMain(
     bodyMarkdown: bodyMarkdown || null,
     summary: summaryBits.join(" · ") || null,
     galleryUrls,
-    status: /sold/i.test(listedPriceLabel || "") ? "SOLD" : "FOR_SALE",
+    status: isSoldPriceLabel(listedPriceLabel) ? "SOLD" : "FOR_SALE",
     listedPriceLabel,
     propertyType,
     buildingArea: building,

@@ -7,6 +7,7 @@ import {
   type RayWhiteInspection,
 } from "@/lib/listing-import/parse-inspections";
 import { replaceImportedOpenHomes } from "@/lib/listing-import/save-open-homes";
+import { isRayWhiteListingSold } from "@/lib/listing-import/raywhite-sold";
 import { slugify } from "@/lib/slugify";
 import { TEAM_MEMBER_IDS } from "@/lib/team";
 
@@ -252,8 +253,11 @@ export async function syncTeamListings(
       .filter(Boolean)
       .join(" · ");
 
-    const isSold =
-      listing.statusCode === "SLD" || /sold/i.test(listing.status || "");
+    const isSold = isRayWhiteListingSold({
+      statusCode: listing.statusCode,
+      status: listing.status,
+      displayPrice: listedPriceLabel,
+    });
     const status = isSold
       ? "SOLD"
       : listing.underOffer

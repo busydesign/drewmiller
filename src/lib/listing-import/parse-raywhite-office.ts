@@ -6,6 +6,8 @@ import {
   type RayWhiteAuction,
   type RayWhiteInspection,
 } from "@/lib/listing-import/parse-inspections";
+import { normalizeRayWhiteAgents } from "@/lib/listing-import/raywhite-agents";
+import { isRayWhiteListingSold } from "@/lib/listing-import/raywhite-sold";
 import type { ListingImportPreview } from "@/lib/listing-import/types";
 
 type OfficeAddress = {
@@ -194,12 +196,12 @@ export function parseRayWhiteOffice(
   ];
 
   // Preserve full agent list (lead is first on Ray White)
-  const agents = (listing.agents || [])
-    .map((a) => ({
+  const agents = normalizeRayWhiteAgents(
+    (listing.agents || []).map((a) => ({
       fullName: cleanText(a.fullName || ""),
       memberId: a.memberId ?? null,
     }))
-    .filter((a) => a.fullName);
+  );
   const agentName = agents[0]?.fullName || "Drew Miller";
   const agentMemberId = agents[0]?.memberId ?? null;
   const openHomes = parseRayWhiteInspections(listing.inspections);
@@ -212,10 +214,11 @@ export function parseRayWhiteOffice(
     land ? `Land ${land}` : null,
   ].filter(Boolean);
 
-  const sold =
-    /sold/i.test(listedPriceLabel || "") ||
-    /sold/i.test(listing.listingState || "") ||
-    listing.typeCode === "AUC";
+  const sold = isRayWhiteListingSold({
+    status: listing.status,
+    listingState: listing.listingState,
+    displayPrice: listedPriceLabel,
+  });
 
   return {
     source: "raywhite.co.nz",

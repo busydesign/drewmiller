@@ -6,6 +6,8 @@ import {
   type RayWhiteAuction,
   type RayWhiteInspection,
 } from "@/lib/listing-import/parse-inspections";
+import { normalizeRayWhiteAgents } from "@/lib/listing-import/raywhite-agents";
+import { isRayWhiteListingSold } from "@/lib/listing-import/raywhite-sold";
 import type { ListingImportPreview } from "@/lib/listing-import/types";
 import type { RayWhiteListingRef } from "@/lib/listing-import/raywhite-source-id";
 
@@ -143,21 +145,22 @@ function listingToPreview(
     ),
   ];
 
-  const agents = (listing.agents || [])
-    .map((a) => ({
+  const agents = normalizeRayWhiteAgents(
+    (listing.agents || []).map((a) => ({
       fullName: cleanText(a.fullName || ""),
       memberId: a.memberId ?? null,
     }))
-    .filter((a) => a.fullName);
+  );
 
   const openHomes = parseRayWhiteInspections(listing.inspections);
   const auction = parseRayWhiteAuction(listing.auction);
 
-  const sold =
-    listing.statusCode === "SLD" ||
-    /sold/i.test(listing.status || "") ||
-    /sold/i.test(listedPriceLabel || "") ||
-    listing.typeCode === "AUC";
+  const sold = isRayWhiteListingSold({
+    statusCode: listing.statusCode,
+    status: listing.status,
+    listingState: listing.listingState,
+    displayPrice: listedPriceLabel,
+  });
 
   const summaryBits = [
     headline || null,
