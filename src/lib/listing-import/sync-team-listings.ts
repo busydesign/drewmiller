@@ -264,9 +264,6 @@ export async function syncTeamListings(
       : listing.underOffer
         ? "UNDER_OFFER"
         : "FOR_SALE";
-    const listedAt = listing.creationTime
-      ? new Date(listing.creationTime)
-      : null;
     const openHomes = isSold
       ? []
       : parseRayWhiteInspections(listing.inspections);
@@ -311,6 +308,10 @@ export async function syncTeamListings(
       log(`↷ ${address} · kept ${existing.status}`);
       continue;
     }
+
+    const listedAt =
+      existing?.listedAt ??
+      (listing.creationTime ? new Date(listing.creationTime) : new Date());
 
     let slug = existing?.slug;
     if (!slug) {

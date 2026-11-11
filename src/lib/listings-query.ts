@@ -47,16 +47,14 @@ export function agentsForCard(listing: ListingWithAgents) {
   return [];
 }
 
-/** Drew’s listings first, then newest list date. */
+/** Drew’s listings first, then most recently added to this site. */
 export function sortTeamListings<T extends ListingWithAgents>(rows: T[]): T[] {
   return [...rows].sort((a, b) => {
     const aDrew = a.leadAgent?.isLead ? 1 : 0;
     const bDrew = b.leadAgent?.isLead ? 1 : 0;
     if (aDrew !== bDrew) return bDrew - aDrew;
 
-    const aDate = a.listedAt?.getTime() ?? a.createdAt.getTime();
-    const bDate = b.listedAt?.getTime() ?? b.createdAt.getTime();
-    return bDate - aDate;
+    return b.createdAt.getTime() - a.createdAt.getTime();
   });
 }
 
@@ -109,17 +107,14 @@ export async function getAgentListings(agentId: string) {
   });
 
   const listings = links.map((link) => link.listing);
-  const byListedAt = (a: ListingWithAgents, b: ListingWithAgents) => {
-    const aDate = a.listedAt?.getTime() ?? a.createdAt.getTime();
-    const bDate = b.listedAt?.getTime() ?? b.createdAt.getTime();
-    return bDate - aDate;
-  };
+  const byCreatedAt = (a: ListingWithAgents, b: ListingWithAgents) =>
+    b.createdAt.getTime() - a.createdAt.getTime();
 
   const current = listings
     .filter((l) =>
       ["FOR_SALE", "UNDER_OFFER", "COMING_SOON"].includes(l.status)
     )
-    .sort(byListedAt);
+    .sort(byCreatedAt);
 
   const sold = listings
     .filter((l) => l.status === "SOLD")
