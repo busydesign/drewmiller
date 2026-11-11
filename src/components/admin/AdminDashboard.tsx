@@ -147,6 +147,7 @@ export function AdminDashboard({
   const [importStatus, setImportStatus] =
     useState<AdminListingStatus>("FOR_SALE");
   const [message, setMessage] = useState<string | null>(null);
+  const [liveSlug, setLiveSlug] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<
@@ -240,6 +241,7 @@ export function AdminDashboard({
   async function previewImport() {
     setBusy(true);
     setMessage(null);
+    setLiveSlug(null);
     try {
       const res = await fetch("/api/admin/listing-import", {
         method: "POST",
@@ -274,6 +276,7 @@ export function AdminDashboard({
     if (opts?.listingId) setRowBusyId(opts.listingId);
     else setBusy(true);
     setMessage(null);
+    setLiveSlug(null);
 
     const agentIds =
       opts?.agentIds ??
@@ -306,6 +309,7 @@ export function AdminDashboard({
       const agentLabel = Array.isArray(data.agents)
         ? data.agents.map((a: { name: string }) => a.name).join(" · ")
         : "";
+      setLiveSlug(typeof data.slug === "string" ? data.slug : null);
       setMessage(
         `${data.updated ? "Updated" : "Published"} /${data.slug} · ${data.images || 0} photos${
           agentLabel ? ` · ${agentLabel}` : ""
@@ -453,6 +457,7 @@ export function AdminDashboard({
   async function syncFromRayWhite() {
     setBusy(true);
     setMessage(null);
+    setLiveSlug(null);
     try {
       const res = await fetch("/api/cron/sync-listings", { method: "POST" });
       const data = await res.json();
@@ -596,10 +601,11 @@ export function AdminDashboard({
               <p className="eyebrow">Add / refresh listing</p>
               <h2 className="display mt-2 text-3xl">Paste a listing URL</h2>
               <p className="mt-2 text-sm text-ink-soft">
-                Best from rwmairangibay.co.nz or raywhite.co.nz. Preview pulls
-                agents from Ray White — tick anyone missing before publish. Use
-                Edit on a listing below to refresh a specific page or retag
-                agents.
+                Paste the Ray White property URL and click{" "}
+                <strong>Publish listing</strong> — Preview is optional. Agents
+                are matched from Ray White. Use{" "}
+                <strong>Sync from Ray White</strong> below to pull the whole
+                team’s current listings at once.
               </p>
               <div className="mt-4 flex flex-col gap-3 md:flex-row">
                 <input
@@ -679,7 +685,25 @@ export function AdminDashboard({
                 </div>
               </div>
               {message ? (
-                <p className="mt-3 text-sm text-sea-deep">{message}</p>
+                <p className="mt-3 text-sm text-sea-deep">
+                  {message}
+                  {liveSlug ? (
+                    <>
+                      {" "}
+                      <Link
+                        href={`/${liveSlug}`}
+                        target="_blank"
+                        className="underline"
+                      >
+                        Open live page
+                      </Link>
+                      {" · "}
+                      <Link href="/listings" target="_blank" className="underline">
+                        Current listings
+                      </Link>
+                    </>
+                  ) : null}
+                </p>
               ) : null}
               {preview ? (
                 <div className="mt-4 space-y-3">

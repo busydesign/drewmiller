@@ -2,6 +2,7 @@ import { timingSafeEqual } from "crypto";
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth";
 import { syncTeamListings } from "@/lib/listing-import/sync-team-listings";
+import { revalidateListingPages } from "@/lib/revalidate-listings";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -27,6 +28,7 @@ async function run(req: Request) {
 
   try {
     const result = await syncTeamListings();
+    revalidateListingPages();
     return NextResponse.json({ ok: true, ...result });
   } catch (err) {
     console.error(err);

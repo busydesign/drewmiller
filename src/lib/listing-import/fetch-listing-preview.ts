@@ -59,41 +59,22 @@ async function fetchRayWhitePreview(
   sourceUrl: string
 ): Promise<ListingImportPreview> {
   const listingRef = extractRayWhiteListingRef(sourceUrl);
-  let htmlError: Error | null = null;
 
-  try {
-    const html = await fetchHtml(sourceUrl);
-    if (isUsableRayWhiteHtml(html)) {
-      const htmlPreview = parseRayWhite(html, sourceUrl);
-      if (
-        listingRef &&
-        (!htmlPreview.openHomes?.length || !htmlPreview.auctionAt)
-      ) {
-        const apiPreview = await fetchRayWhiteListingFromApi(
-          listingRef,
-          sourceUrl
-        );
-        if (apiPreview) {
-          return {
-            ...htmlPreview,
-            openHomes: htmlPreview.openHomes?.length
-              ? htmlPreview.openHomes
-              : apiPreview.openHomes,
-            auctionAt: htmlPreview.auctionAt || apiPreview.auctionAt,
-            auctionLocation:
-              htmlPreview.auctionLocation || apiPreview.auctionLocation,
-          };
-        }
-      }
-      return htmlPreview;
-    }
-  } catch (e) {
-    htmlError = e instanceof Error ? e : new Error("Could not fetch listing page");
-  }
-
+  // Office HTML is often blocked from Railway IPs. The JSON API is the
+  // reliable source for paste-and-publish.
   if (listingRef) {
     const apiPreview = await fetchRayWhiteListingFromApi(listingRef, sourceUrl);
     if (apiPreview) return apiPreview;
+  }
+
+  let htmlError: Error | null = null;
+  try {
+    const html = await fetchHtml(sourceUrl);
+    if (isUsableRayWhiteHtml(html)) {
+      return parseRayWhite(html, sourceUrl);
+    }
+  } catch (e) {
+    htmlError = e instanceof Error ? e : new Error("Could not fetch listing page");
   }
 
   throw (

@@ -10,6 +10,7 @@ import {
   isCurrentListingStatus,
   type AdminListingStatus,
 } from "@/lib/listing-status";
+import { revalidateListingPages } from "@/lib/revalidate-listings";
 import { slugify } from "@/lib/slugify";
 
 function suburbFromAddress(address: string): string | null {
@@ -314,6 +315,8 @@ export async function POST(req: Request) {
         },
       });
     }
+
+    revalidateListingPages(listing.slug);
 
     return NextResponse.json({
       ok: true,

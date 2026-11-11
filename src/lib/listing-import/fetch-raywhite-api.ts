@@ -214,31 +214,45 @@ async function fetchListingByRef(
       ? `sourceId:${encodeURIComponent(ref.value)}`
       : `id:${encodeURIComponent(ref.value)}`;
   const url = `${API}/listings?q=${query}`;
-  const res = await fetch(url, {
-    headers: {
-      "User-Agent": USER_AGENT,
-      Accept: "application/json",
-      "Accept-Language": "en-NZ,en;q=0.9",
-      Referer: "https://rwmairangibay.co.nz/",
-    },
-    cache: "no-store",
-    // @ts-expect-error Node fetch TLS option used in some runtimes
-    rejectUnauthorized: false,
-  });
 
-  if (!res.ok) return null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(url, {
+        headers: {
+          "User-Agent": USER_AGENT,
+          Accept: "application/json",
+          "Accept-Language": "en-NZ,en;q=0.9",
+          Referer: "https://rwmairangibay.co.nz/",
+        },
+        cache: "no-store",
+        // @ts-expect-error Node fetch TLS option used in some runtimes
+        rejectUnauthorized: false,
+      });
+      if (res.ok) {
+        const json = (await res.json()) as {
+          data?: Array<{ value?: ApiListing }>;
+        };
+        const listing = json.data?.[0]?.value;
+        return listing?.id ? listing : null;
+      }
+      if (![403, 429, 500, 502, 503].includes(res.status)) return null;
+    } catch {
+      /* retry CloudFront / TLS blips */
+    }
+    await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)));
+  }
 
-  const json = (await res.json()) as { data?: Array<{ value?: ApiListing }> };
-  const listing = json.data?.[0]?.value;
-  return listing?.id ? listing : null;
+  return null;
 }
 
-/** Fallback when Ray White HTML is blocked (e.g. CloudFront on server IPs). */
+/** Ray White office API — used first because listing HTML is often blocked. */
 export async function fetchRayWhiteListingFromApi(
   ref: RayWhiteListingRef,
   sourceUrl: string
 ): Promise<ListingImportPreview | null> {
   const listing = await fetchListingByRef(ref);
   if (!listing) return null;
-  return listingToPreview(listing, sourceUrl);
+  const canonical =
+    listing.links?.find((link) => link.code === "PRL")?.url || sourceUrl;
+  return listingToPreview(listing, canonical);
 }

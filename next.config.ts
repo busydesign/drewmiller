@@ -15,6 +15,19 @@ const nextConfig: NextConfig = {
     ],
     unoptimized: true,
   },
+  async headers() {
+    return [
+      {
+        source: "/listings",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "private, no-store, max-age=0, must-revalidate",
+          },
+        ],
+      },
+    ];
+  },
   async redirects() {
     return [
       // Legacy / mistaken nav path
