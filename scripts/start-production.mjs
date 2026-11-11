@@ -1,4 +1,4 @@
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import net from "node:net";
 import { URL } from "node:url";
 
@@ -89,8 +89,57 @@ async function main() {
     log("Migrations complete");
   }
 
+  scheduleListingSync();
+  startWeb();
+}
+
+function startWeb() {
   log(`Starting Next.js on 0.0.0.0:${port}`);
-  run("npx", ["next", "start", "--hostname", "0.0.0.0", "--port", String(port)]);
+  const child = spawn(
+    "npx",
+    ["next", "start", "--hostname", "0.0.0.0", "--port", String(port)],
+    { stdio: "inherit", env: process.env }
+  );
+  const stop = (signal) => {
+    if (!child.killed) child.kill(signal);
+  };
+  process.on("SIGTERM", () => stop("SIGTERM"));
+  process.on("SIGINT", () => stop("SIGINT"));
+  child.on("exit", (code, signal) => {
+    log("Next.js exited", { code, signal });
+    process.exit(code ?? 1);
+  });
+}
+
+const LISTING_SYNC_INITIAL_MS = 2 * 60 * 1000;
+const LISTING_SYNC_EVERY_MS = 6 * 60 * 60 * 1000;
+
+function scheduleListingSync() {
+  if (process.env.SKIP_LISTING_SYNC === "1") {
+    log("SKIP_LISTING_SYNC=1 — not scheduling Ray White listing sync");
+    return;
+  }
+
+  const run = () => {
+    log("Scheduled Ray White listing sync starting");
+    const child = spawn("npx", ["tsx", "scripts/sync-team-listings.ts"], {
+      stdio: "inherit",
+      env: process.env,
+    });
+    child.on("exit", (code) => {
+      log("Scheduled listing sync exited", code ?? "unknown");
+    });
+  };
+
+  setTimeout(() => {
+    run();
+    setInterval(run, LISTING_SYNC_EVERY_MS);
+  }, LISTING_SYNC_INITIAL_MS);
+  log(
+    `Listing sync in ${LISTING_SYNC_INITIAL_MS / 1000}s, then every ${
+      LISTING_SYNC_EVERY_MS / 3600000
+    }h`
+  );
 }
 
 main().catch((err) => {

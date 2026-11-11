@@ -218,6 +218,7 @@ async function fetchListingByRef(
     headers: {
       "User-Agent": USER_AGENT,
       Accept: "application/json",
+      "Accept-Language": "en-NZ,en;q=0.9",
       Referer: "https://rwmairangibay.co.nz/",
     },
     cache: "no-store",

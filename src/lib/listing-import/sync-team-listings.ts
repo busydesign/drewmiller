@@ -121,11 +121,12 @@ async function fetchMemberListings(
   statusCode: "CUR" | "SLD"
 ): Promise<ApiListing[]> {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-  const url = `${API}/listings?rpp=50&q=memberId:${memberId}&statusCode=${statusCode}&listingStateCode=ACT`;
+  const url = `${API}/listings?rpp=100&q=memberId:${memberId}&statusCode=${statusCode}&listingStateCode=ACT`;
   const res = await fetch(url, {
     headers: {
       "User-Agent": UA,
       Accept: "application/json",
+      "Accept-Language": "en-NZ,en;q=0.9",
       Referer: "https://rwmairangibay.co.nz/",
     },
     cache: "no-store",
