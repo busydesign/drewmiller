@@ -13,6 +13,8 @@ import {
 import { revalidateListingPages } from "@/lib/revalidate-listings";
 import { slugify } from "@/lib/slugify";
 
+export const maxDuration = 60;
+
 function suburbFromAddress(address: string): string | null {
   const parts = address.split(",").map((p) => p.trim()).filter(Boolean);
   if (parts.length >= 2) {
@@ -47,10 +49,8 @@ export async function POST(req: Request) {
   }
 
   try {
-    // Ensure Ray White TLS quirks don't block server-side fetch in local/dev
-    if (process.env.NODE_ENV !== "production") {
-      process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-    }
+    // Ray White / CloudFront often fail strict TLS from server IPs
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
     const preview = await fetchListingPreview(url);
     if (mode === "preview") {
@@ -113,13 +113,20 @@ export async function POST(req: Request) {
       }
     }
 
-    const geo =
+    let geo =
       preview.latitude != null && preview.longitude != null
         ? {
             latitude: preview.latitude,
             longitude: preview.longitude,
           }
-        : await geocodePropertyAddress(address);
+        : null;
+    if (!geo) {
+      try {
+        geo = await geocodePropertyAddress(address);
+      } catch (err) {
+        console.error("Geocode failed; publishing without a map pin", err);
+      }
+    }
 
     const suburb = suburbFromAddress(address);
     const listedPriceLabel =

@@ -122,10 +122,14 @@ function scheduleListingSync() {
 
   const run = () => {
     log("Scheduled Ray White listing sync starting");
-    const child = spawn("npx", ["tsx", "scripts/sync-team-listings.ts"], {
-      stdio: "inherit",
-      env: process.env,
-    });
+    const child = spawn(
+      process.execPath,
+      ["--import", "tsx", "scripts/sync-team-listings.ts"],
+      {
+        stdio: "inherit",
+        env: process.env,
+      }
+    );
     child.on("exit", (code) => {
       log("Scheduled listing sync exited", code ?? "unknown");
     });

@@ -5,7 +5,7 @@ import { syncTeamListings } from "@/lib/listing-import/sync-team-listings";
 import { revalidateListingPages } from "@/lib/revalidate-listings";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 120;
+export const maxDuration = 180;
 
 function cronSecretOk(req: Request): boolean {
   const secret = process.env.CRON_SECRET?.trim();

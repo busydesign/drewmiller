@@ -122,21 +122,37 @@ async function fetchMemberListings(
 ): Promise<ApiListing[]> {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
   const url = `${API}/listings?rpp=100&q=memberId:${memberId}&statusCode=${statusCode}&listingStateCode=ACT`;
-  const res = await fetch(url, {
-    headers: {
-      "User-Agent": UA,
-      Accept: "application/json",
-      "Accept-Language": "en-NZ,en;q=0.9",
-      Referer: "https://rwmairangibay.co.nz/",
-    },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Listings API ${res.status} for ${memberId}`);
-  const json = (await res.json()) as { data?: Array<{ value?: ApiListing }> };
-  return (json.data || [])
-    .map((row) => row.value)
-    .filter((v): v is ApiListing => Boolean(v?.id))
-    .filter((v) => (v.agents || []).some((a) => a.memberId === memberId));
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(url, {
+        headers: {
+          "User-Agent": UA,
+          Accept: "application/json",
+          "Accept-Language": "en-NZ,en;q=0.9",
+          Referer: "https://rwmairangibay.co.nz/",
+        },
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const json = (await res.json()) as {
+          data?: Array<{ value?: ApiListing }>;
+        };
+        return (json.data || [])
+          .map((row) => row.value)
+          .filter((v): v is ApiListing => Boolean(v?.id))
+          .filter((v) => (v.agents || []).some((a) => a.memberId === memberId));
+      }
+      lastError = new Error(`Listings API ${res.status} for ${memberId}`);
+      if (![403, 429, 500, 502, 503].includes(res.status)) throw lastError;
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+    }
+    await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)));
+  }
+
+  throw lastError || new Error(`Listings API failed for ${memberId}`);
 }
 
 export type TeamListingSyncResult = {
