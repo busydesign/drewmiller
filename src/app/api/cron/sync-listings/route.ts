@@ -1,10 +1,10 @@
 import { timingSafeEqual } from "crypto";
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth";
-import { syncTeamListings } from "@/lib/listing-import/sync-team-listings";
-import { revalidateListingPages } from "@/lib/revalidate-listings";
+import { runListingSync } from "@/lib/listing-sync-scheduler";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 export const maxDuration = 180;
 
 function cronSecretOk(req: Request): boolean {
@@ -20,11 +20,23 @@ function cronSecretOk(req: Request): boolean {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
+function isLoopbackAddress(value: string) {
+  const host = value.split(":")[0].trim().toLowerCase();
+  return (
+    host === "127.0.0.1" ||
+    host === "localhost" ||
+    host === "::1" ||
+    host === "0:0:0:0:0:0:0:1"
+  );
+}
+
 function isLoopbackSync(req: Request) {
-  const forwarded = req.headers.get("x-forwarded-for");
-  if (forwarded) return false;
-  const host = (req.headers.get("host") || "").split(":")[0];
-  return host === "127.0.0.1" || host === "localhost";
+  const host = req.headers.get("host") || "";
+  if (!isLoopbackAddress(host)) return false;
+  const forwarded = (req.headers.get("x-forwarded-for") || "")
+    .split(",")[0]
+    .trim();
+  return !forwarded || isLoopbackAddress(forwarded);
 }
 
 async function run(req: Request) {
@@ -34,8 +46,7 @@ async function run(req: Request) {
   }
 
   try {
-    const result = await syncTeamListings();
-    revalidateListingPages();
+    const result = await runListingSync("http");
     return NextResponse.json({ ok: true, ...result });
   } catch (err) {
     console.error(err);
