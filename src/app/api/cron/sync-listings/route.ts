@@ -20,9 +20,16 @@ function cronSecretOk(req: Request): boolean {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
+function isLoopbackSync(req: Request) {
+  const forwarded = req.headers.get("x-forwarded-for");
+  if (forwarded) return false;
+  const host = (req.headers.get("host") || "").split(":")[0];
+  return host === "127.0.0.1" || host === "localhost";
+}
+
 async function run(req: Request) {
   const admin = await getAdminSession();
-  if (!admin && !cronSecretOk(req)) {
+  if (!admin && !cronSecretOk(req) && !isLoopbackSync(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

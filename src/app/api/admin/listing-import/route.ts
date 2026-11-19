@@ -179,7 +179,7 @@ export async function POST(req: Request) {
             ? byName.get(row.fullName.toLowerCase()) || null
             : null);
         if (!agent) return null;
-        return { agent, index, isLead: index === 0 };
+        return { agent, index };
       })
       .filter(
         (
@@ -187,9 +187,13 @@ export async function POST(req: Request) {
         ): row is {
           agent: (typeof teamAgents)[number];
           index: number;
-          isLead: boolean;
         } => Boolean(row)
-      );
+      )
+      .map((row, index) => ({
+        agent: row.agent,
+        index,
+        isLead: index === 0,
+      }));
 
     // Manual override from admin checkboxes (order preserved; first = lead)
     if (agentIdsOverride?.length) {

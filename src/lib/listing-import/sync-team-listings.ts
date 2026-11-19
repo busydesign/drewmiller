@@ -241,8 +241,17 @@ export async function syncTeamListings(
         } => Boolean(row)
       );
 
+    if (teamAgents.length > 0 && !teamAgents.some((row) => row.isLead)) {
+      teamAgents[0].isLead = true;
+    }
+    const orderedTeamAgents = teamAgents.map((row, index) => ({
+      ...row,
+      index,
+    }));
     const leadAgent =
-      teamAgents.find((a) => a.isLead)?.agent || teamAgents[0]?.agent || null;
+      orderedTeamAgents.find((a) => a.isLead)?.agent ||
+      orderedTeamAgents[0]?.agent ||
+      null;
     const headline = decodeHtmlEntities(listing.title || "").trim();
     const bodyHtml = (listing.description || "").trim();
     const bodyMarkdown = stripTags(bodyHtml);
@@ -404,9 +413,9 @@ export async function syncTeamListings(
         });
 
     await prisma.listingAgent.deleteMany({ where: { listingId: saved.id } });
-    if (teamAgents.length > 0) {
+    if (orderedTeamAgents.length > 0) {
       await prisma.listingAgent.createMany({
-        data: teamAgents.map(({ agent, index, isLead }) => ({
+        data: orderedTeamAgents.map(({ agent, index, isLead }) => ({
           listingId: saved.id,
           agentId: agent.id,
           isLead,

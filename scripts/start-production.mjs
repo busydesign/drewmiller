@@ -111,8 +111,8 @@ function startWeb() {
   });
 }
 
-const LISTING_SYNC_INITIAL_MS = 2 * 60 * 1000;
-const LISTING_SYNC_EVERY_MS = 6 * 60 * 60 * 1000;
+const LISTING_SYNC_INITIAL_MS = 3 * 60 * 1000;
+const LISTING_SYNC_EVERY_MS = 30 * 60 * 1000;
 
 function scheduleListingSync() {
   if (process.env.SKIP_LISTING_SYNC === "1") {
@@ -120,8 +120,45 @@ function scheduleListingSync() {
     return;
   }
 
-  const run = () => {
-    log("Scheduled Ray White listing sync starting");
+  let syncing = false;
+  const runViaHttp = async () => {
+    if (syncing) {
+      log("Listing sync already running — skip");
+      return;
+    }
+    syncing = true;
+    const secret = process.env.CRON_SECRET?.trim();
+    const url = `http://127.0.0.1:${port}/api/cron/sync-listings`;
+    log("Scheduled Ray White listing sync starting", url);
+    try {
+      for (let attempt = 1; attempt <= 4; attempt++) {
+        try {
+          const res = await fetch(url, {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              ...(secret ? { Authorization: `Bearer ${secret}` } : {}),
+            },
+          });
+          const body = await res.text();
+          log("Scheduled listing sync", res.status, body.slice(0, 500));
+          if (res.ok) return;
+          break;
+        } catch (err) {
+          log(`Scheduled listing sync HTTP attempt ${attempt} failed`, err);
+          if (attempt < 4) {
+            await new Promise((resolve) => setTimeout(resolve, 15_000));
+          }
+        }
+      }
+      runViaTsx();
+    } finally {
+      syncing = false;
+    }
+  };
+
+  const runViaTsx = () => {
+    log("Falling back to tsx listing sync");
     const child = spawn(
       process.execPath,
       ["--import", "tsx", "scripts/sync-team-listings.ts"],
@@ -136,13 +173,13 @@ function scheduleListingSync() {
   };
 
   setTimeout(() => {
-    run();
-    setInterval(run, LISTING_SYNC_EVERY_MS);
+    runViaHttp();
+    setInterval(runViaHttp, LISTING_SYNC_EVERY_MS);
   }, LISTING_SYNC_INITIAL_MS);
   log(
     `Listing sync in ${LISTING_SYNC_INITIAL_MS / 1000}s, then every ${
-      LISTING_SYNC_EVERY_MS / 3600000
-    }h`
+      LISTING_SYNC_EVERY_MS / 60000
+    }m`
   );
 }
 
