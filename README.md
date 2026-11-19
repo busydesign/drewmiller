@@ -55,20 +55,17 @@ Admin login (from `.env`):
 DATABASE_URL="postgresql://..." npm run db:push-sqlite
 ```
 
-## Daily listing sync
+## Adding listings
 
-Open homes change often, so current listings are refreshed from the Ray White Mairangi Bay API.
+Listings are not pulled from Ray White automatically. Add them in `/admin` by pasting a property URL and clicking **Publish listing**.
 
-1. Set `CRON_SECRET` on the Railway web service
-2. Click **Sync from Ray White** in `/admin`, or schedule a daily POST to `/api/cron/sync-listings` with `Authorization: Bearer $CRON_SECRET`
-
-You can also run it locally:
+**Sync from Ray White** in admin is a one-off refresh if you want to pull the whole team’s current campaigns or update open homes on listings already on the site. You can also run that locally:
 
 ```bash
 npm run db:sync-team
 ```
 
-Extra open-home times can still be added per listing in admin. Those stay put when Ray White times are refreshed.
+Extra open-home times can still be added per listing in admin.
 
 ## Content sources
 

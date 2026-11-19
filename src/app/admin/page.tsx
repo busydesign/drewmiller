@@ -2,7 +2,6 @@ import { getAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { AdminLoginForm } from "@/components/admin/AdminLoginForm";
-import { requestListingSyncIfStale } from "@/lib/listing-sync-scheduler";
 
 export default async function AdminPage() {
   const session = await getAdminSession();
@@ -22,8 +21,6 @@ export default async function AdminPage() {
       </section>
     );
   }
-
-  requestListingSyncIfStale();
 
   const [listings, leads, blogPosts, settings, agents] = await Promise.all([
     prisma.listing.findMany({

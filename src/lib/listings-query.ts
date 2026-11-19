@@ -1,6 +1,5 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import { requestListingSyncIfStale } from "@/lib/listing-sync-scheduler";
 
 export const listingCardInclude = {
   leadAgent: {
@@ -60,7 +59,6 @@ export function sortTeamListings<T extends ListingWithAgents>(rows: T[]): T[] {
 }
 
 export async function getCurrentTeamListings(take?: number) {
-  requestListingSyncIfStale();
   const rows = await prisma.listing.findMany({
     where: {
       published: true,

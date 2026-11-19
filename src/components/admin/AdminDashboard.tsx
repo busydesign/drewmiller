@@ -602,10 +602,9 @@ export function AdminDashboard({
               <h2 className="display mt-2 text-3xl">Paste a listing URL</h2>
               <p className="mt-2 text-sm text-ink-soft">
                 Paste the Ray White property URL and click{" "}
-                <strong>Publish listing</strong> — Preview is optional. The
-                site also pulls Drew’s current Ray White campaigns
-                automatically about every 10 minutes. Use{" "}
-                <strong>Sync from Ray White</strong> below to pull them now.
+                <strong>Publish listing</strong>. Listings are added only when
+                you publish them here — the site does not pull new campaigns
+                from Ray White on its own. Preview is optional.
               </p>
               <div className="mt-4 flex flex-col gap-3 md:flex-row">
                 <input
