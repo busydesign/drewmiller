@@ -16,6 +16,10 @@ import {
 } from "@/lib/listing-status";
 import { labelForListingLink } from "@/lib/listing-links";
 import {
+  fetchRayWhiteListingInBrowser,
+  isRayWhiteBlockedError,
+} from "@/lib/listing-import/fetch-raywhite-browser";
+import {
   formatOpenHome,
   nextOpenHomeLabel,
   toNzDateTimeLocal,
@@ -238,20 +242,60 @@ export function AdminDashboard({
     }
   }
 
+  async function postListingImport(payload: Record<string, unknown>) {
+    const res = await fetch("/api/admin/listing-import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = (await res.json()) as {
+      error?: string;
+      preview?: Record<string, unknown>;
+      slug?: string;
+      images?: number;
+      updated?: boolean;
+      agents?: Array<{ name: string }>;
+    };
+    if (res.ok) return data;
+
+    if (
+      payload.sourceListing ||
+      !isRayWhiteBlockedError(data.error)
+    ) {
+      throw new Error(data.error || "Import failed");
+    }
+
+    setMessage("Ray White blocked the server — retrying from this browser…");
+    const sourceListing = await fetchRayWhiteListingInBrowser(
+      String(payload.url || "")
+    );
+    if (!sourceListing) {
+      throw new Error(
+        data.error ||
+          "Ray White blocked the website server (403). Try Publish again in a moment."
+      );
+    }
+
+    const retry = await fetch("/api/admin/listing-import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...payload, sourceListing }),
+    });
+    const retryData = (await retry.json()) as typeof data;
+    if (!retry.ok) {
+      throw new Error(retryData.error || data.error || "Import failed");
+    }
+    return retryData;
+  }
+
   async function previewImport() {
     setBusy(true);
     setMessage(null);
     setLiveSlug(null);
     try {
-      const res = await fetch("/api/admin/listing-import", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, mode: "preview" }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Import preview failed");
-      setPreview(data.preview);
-      setImportAgentIds(agentIdsFromPreview(data.preview, agents));
+      const data = await postListingImport({ url, mode: "preview" });
+      setPreview(data.preview || null);
+      setImportAgentIds(agentIdsFromPreview(data.preview || null, agents));
       setImportStatus(
         data.preview?.status === "SOLD" ? "SOLD" : "FOR_SALE"
       );
@@ -293,19 +337,13 @@ export function AdminDashboard({
         : importStatus);
 
     try {
-      const res = await fetch("/api/admin/listing-import", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          url: publishUrl,
-          mode: "publish",
-          listingId: opts?.listingId || undefined,
-          agentIds: agentIds.length > 0 ? agentIds : undefined,
-          status,
-        }),
+      const data = await postListingImport({
+        url: publishUrl,
+        mode: "publish",
+        listingId: opts?.listingId || undefined,
+        agentIds: agentIds.length > 0 ? agentIds : undefined,
+        status,
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Publish failed");
       const agentLabel = Array.isArray(data.agents)
         ? data.agents.map((a: { name: string }) => a.name).join(" · ")
         : "";

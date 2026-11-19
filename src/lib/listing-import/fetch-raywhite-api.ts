@@ -11,9 +11,21 @@ import { isRayWhiteListingSold } from "@/lib/listing-import/raywhite-sold";
 import type { ListingImportPreview } from "@/lib/listing-import/types";
 import type { RayWhiteListingRef } from "@/lib/listing-import/raywhite-source-id";
 
-const API = "https://rwmairangibay.co.nz/api/proxy/v1";
+export const RAYWHITE_API_HOSTS = [
+  "https://rwmairangibay.co.nz/api/proxy/v1",
+  "https://www.rwmairangibay.co.nz/api/proxy/v1",
+] as const;
+
 const USER_AGENT =
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+
+const FETCH_HEADERS = {
+  "User-Agent": USER_AGENT,
+  Accept: "application/json",
+  "Accept-Language": "en-NZ,en;q=0.9",
+  Referer: "https://rwmairangibay.co.nz/",
+  Origin: "https://rwmairangibay.co.nz",
+};
 
 type ApiAddress = {
   unitNumber?: string;
@@ -120,7 +132,7 @@ function measurement(
   return formatArea(row.value, row.name || code);
 }
 
-function listingToPreview(
+export function listingToPreview(
   listing: ApiListing,
   sourceUrl: string
 ): ListingImportPreview {
@@ -206,40 +218,70 @@ function listingToPreview(
   };
 }
 
+export function rayWhiteApiListingFromUnknown(
+  value: unknown
+): ApiListing | null {
+  if (!value || typeof value !== "object") return null;
+  const row = value as ApiListing;
+  const id = Number(row.id);
+  if (!Number.isInteger(id) || id <= 0) return null;
+  return { ...row, id };
+}
+
+export function apiListingMatchesRef(
+  listing: ApiListing,
+  ref: RayWhiteListingRef
+): boolean {
+  if (ref.kind === "id") return String(listing.id) === ref.value;
+  return (listing.sourceId || "").toUpperCase() === ref.value.toUpperCase();
+}
+
+export function listingFromRayWhiteApiJson(json: unknown): ApiListing | null {
+  if (!json || typeof json !== "object") return null;
+  const root = json as {
+    data?: Array<{ value?: unknown }>;
+    contents?: string;
+  };
+  const direct = rayWhiteApiListingFromUnknown(root.data?.[0]?.value);
+  if (direct) return direct;
+  if (typeof root.contents === "string") {
+    try {
+      return listingFromRayWhiteApiJson(JSON.parse(root.contents));
+    } catch {
+      return null;
+    }
+  }
+  return rayWhiteApiListingFromUnknown(json);
+}
+
 async function fetchListingByRef(
   ref: RayWhiteListingRef
 ): Promise<ApiListing | null> {
-  const query =
-    ref.kind === "sourceId"
-      ? `sourceId:${encodeURIComponent(ref.value)}`
-      : `id:${encodeURIComponent(ref.value)}`;
-  const url = `${API}/listings?q=${query}`;
+  const field = ref.kind === "sourceId" ? "sourceId" : "id";
+  const urls = RAYWHITE_API_HOSTS.map(
+    (host) => `${host}/listings?q=${field}:${encodeURIComponent(ref.value)}`
+  );
 
-  for (let attempt = 0; attempt < 3; attempt++) {
-    try {
-      const res = await fetch(url, {
-        headers: {
-          "User-Agent": USER_AGENT,
-          Accept: "application/json",
-          "Accept-Language": "en-NZ,en;q=0.9",
-          Referer: "https://rwmairangibay.co.nz/",
-        },
-        cache: "no-store",
-        // @ts-expect-error Node fetch TLS option used in some runtimes
-        rejectUnauthorized: false,
-      });
-      if (res.ok) {
-        const json = (await res.json()) as {
-          data?: Array<{ value?: ApiListing }>;
-        };
-        const listing = json.data?.[0]?.value;
-        return listing?.id ? listing : null;
+  for (const url of urls) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const res = await fetch(url, {
+          headers: FETCH_HEADERS,
+          cache: "no-store",
+          // @ts-expect-error Node fetch TLS option used in some runtimes
+          rejectUnauthorized: false,
+        });
+        if (res.ok) {
+          const json = await res.json();
+          const listing = listingFromRayWhiteApiJson(json);
+          if (listing) return listing;
+        }
+        if (![403, 429, 500, 502, 503].includes(res.status)) break;
+      } catch {
+        /* retry CloudFront / TLS blips */
       }
-      if (![403, 429, 500, 502, 503].includes(res.status)) return null;
-    } catch {
-      /* retry CloudFront / TLS blips */
+      await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)));
     }
-    await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)));
   }
 
   return null;

@@ -12,7 +12,7 @@ import type { ListingImportPreview } from "@/lib/listing-import/types";
 const FETCH_TIMEOUT_MS = 20_000;
 
 const USER_AGENT =
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
 function parseGenericMeta(html: string, sourceUrl: string): ListingImportPreview {
   const source = detectListingImportSource(sourceUrl);
@@ -55,6 +55,26 @@ function refererForUrl(url: string): string {
   }
 }
 
+function rayWhiteHtmlCandidates(
+  sourceUrl: string,
+  listingRef: ReturnType<typeof extractRayWhiteListingRef>
+): string[] {
+  const urls = [sourceUrl];
+  if (listingRef?.kind === "sourceId") {
+    urls.push(
+      `https://rwmairangibay.co.nz/${listingRef.value}`,
+      `https://www.rwmairangibay.co.nz/${listingRef.value}`
+    );
+  }
+  if (listingRef?.kind === "id") {
+    urls.push(
+      `https://rwmairangibay.co.nz/${listingRef.value}`,
+      `https://www.rwmairangibay.co.nz/${listingRef.value}`
+    );
+  }
+  return [...new Set(urls)];
+}
+
 async function fetchRayWhitePreview(
   sourceUrl: string
 ): Promise<ListingImportPreview> {
@@ -68,13 +88,15 @@ async function fetchRayWhitePreview(
   }
 
   let htmlError: Error | null = null;
-  try {
-    const html = await fetchHtml(sourceUrl);
-    if (isUsableRayWhiteHtml(html)) {
-      return parseRayWhite(html, sourceUrl);
+  for (const candidate of rayWhiteHtmlCandidates(sourceUrl, listingRef)) {
+    try {
+      const html = await fetchHtml(candidate);
+      if (isUsableRayWhiteHtml(html)) {
+        return parseRayWhite(html, sourceUrl);
+      }
+    } catch (e) {
+      htmlError = e instanceof Error ? e : new Error("Could not fetch listing page");
     }
-  } catch (e) {
-    htmlError = e instanceof Error ? e : new Error("Could not fetch listing page");
   }
 
   throw (

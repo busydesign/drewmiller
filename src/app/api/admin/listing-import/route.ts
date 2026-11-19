@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { fetchListingPreview } from "@/lib/listing-import/fetch-listing-preview";
+import {
+  apiListingMatchesRef,
+  listingToPreview,
+  rayWhiteApiListingFromUnknown,
+} from "@/lib/listing-import/fetch-raywhite-api";
+import { extractRayWhiteListingRef } from "@/lib/listing-import/raywhite-source-id";
 import { geocodePropertyAddress } from "@/lib/geocode";
 import { applyListingCampaignTimes } from "@/lib/listing-import/save-open-homes";
 import {
@@ -52,7 +58,18 @@ export async function POST(req: Request) {
     // Ray White / CloudFront often fail strict TLS from server IPs
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
-    const preview = await fetchListingPreview(url);
+    const listingRef = extractRayWhiteListingRef(url);
+    const clientListing = rayWhiteApiListingFromUnknown(body.sourceListing);
+    if (clientListing && listingRef && !apiListingMatchesRef(clientListing, listingRef)) {
+      return NextResponse.json(
+        { error: "That Ray White payload does not match the pasted URL." },
+        { status: 400 }
+      );
+    }
+
+    const preview = clientListing
+      ? listingToPreview(clientListing, url)
+      : await fetchListingPreview(url);
     if (mode === "preview") {
       return NextResponse.json({ preview });
     }
