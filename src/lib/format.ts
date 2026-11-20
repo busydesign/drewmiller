@@ -21,9 +21,8 @@ export function formatDate(date?: Date | string | null): string | null {
 }
 
 export function siteUrl(path = "/"): string {
-  const base = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(
-    /\/$/,
-    ""
-  );
+  const base = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.drewmiller.co.nz")
+    .replace("://drewmiller.co.nz", "://www.drewmiller.co.nz")
+    .replace(/\/$/, "");
   return `${base}${path.startsWith("/") ? path : `/${path}`}`;
 }
