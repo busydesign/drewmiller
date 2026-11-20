@@ -8,6 +8,10 @@ import {
   rayWhiteApiListingFromUnknown,
 } from "@/lib/listing-import/fetch-raywhite-api";
 import { extractRayWhiteListingRef } from "@/lib/listing-import/raywhite-source-id";
+import {
+  applyAdminListingStatus,
+  listingAdminSelect,
+} from "@/lib/listing-admin-status";
 import { geocodePropertyAddress } from "@/lib/geocode";
 import { applyListingCampaignTimes } from "@/lib/listing-import/save-open-homes";
 import {
@@ -20,6 +24,49 @@ import { revalidateListingPages } from "@/lib/revalidate-listings";
 import { slugify } from "@/lib/slugify";
 
 export const maxDuration = 60;
+
+async function findExistingListing(opts: {
+  listingId: string | null;
+  sourceUrl?: string | null;
+  externalId?: string | null;
+}) {
+  if (opts.listingId) {
+    const byId = await prisma.listing.findUnique({
+      where: { id: opts.listingId },
+      select: listingAdminSelect,
+    });
+    if (byId) return byId;
+  }
+
+  const ref = opts.sourceUrl
+    ? extractRayWhiteListingRef(opts.sourceUrl)
+    : null;
+  const externalId =
+    opts.externalId ||
+    (ref?.kind === "sourceId" ? ref.value : null) ||
+    (ref?.kind === "id" ? `rw:${ref.value}` : null);
+
+  return (
+    (opts.sourceUrl
+      ? await prisma.listing.findFirst({
+          where: { sourceUrl: opts.sourceUrl },
+          select: listingAdminSelect,
+        })
+      : null) ||
+    (externalId
+      ? await prisma.listing.findUnique({
+          where: { externalId },
+          select: listingAdminSelect,
+        })
+      : null) ||
+    (ref?.value
+      ? await prisma.listing.findFirst({
+          where: { sourceUrl: { contains: ref.value } },
+          select: listingAdminSelect,
+        })
+      : null)
+  );
+}
 
 function suburbFromAddress(address: string): string | null {
   const parts = address.split(",").map((p) => p.trim()).filter(Boolean);
@@ -67,9 +114,36 @@ export async function POST(req: Request) {
       );
     }
 
-    const preview = clientListing
+    let preview = clientListing
       ? listingToPreview(clientListing, url)
-      : await fetchListingPreview(url);
+      : null;
+    if (!preview) {
+      try {
+        preview = await fetchListingPreview(url);
+      } catch (err) {
+        if (mode !== "publish") throw err;
+        const existing = await findExistingListing({ listingId, sourceUrl: url });
+        const fallbackStatus =
+          statusOverride ??
+          (existing ? toAdminListingStatus(existing.status) : null);
+        if (
+          existing &&
+          (fallbackStatus === "SOLD" || fallbackStatus === "WITHDRAWN")
+        ) {
+          await applyAdminListingStatus(existing, fallbackStatus);
+          return NextResponse.json({
+            ok: true,
+            slug: existing.slug,
+            id: existing.id,
+            source: "admin-status",
+            images: 0,
+            updated: true,
+            agents: [],
+          });
+        }
+        throw err;
+      }
+    }
     if (mode === "preview") {
       return NextResponse.json({ preview });
     }

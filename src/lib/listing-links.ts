@@ -57,8 +57,7 @@ export function parseListingLinks(value: unknown): ListingLink[] | null {
     const urlRaw = String((row as { url?: unknown }).url || "");
     const labelRaw = String((row as { label?: unknown }).label || "");
     const url = normalizeListingUrl(urlRaw);
-    if (!urlRaw.trim()) continue;
-    if (!url) return null;
+    if (!urlRaw.trim() || !url) continue;
     if (seen.has(url)) continue;
     seen.add(url);
     links.push({

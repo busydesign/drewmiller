@@ -1,36 +1,16 @@
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { parseAdminListingStatus } from "@/lib/listing-status";
 import {
-  parseAdminListingStatus,
-  type AdminListingStatus,
-} from "@/lib/listing-status";
+  applyAdminListingStatus,
+  listingAdminSelect,
+} from "@/lib/listing-admin-status";
 import { parseListingLinks } from "@/lib/listing-links";
 import { fromNzDateTimeLocal } from "@/lib/open-homes";
+import { revalidateListingPages } from "@/lib/revalidate-listings";
 
 type Params = { params: Promise<{ id: string }> };
-
-function statusUpdate(
-  listing: { address: string; title: string },
-  status: AdminListingStatus
-) {
-  const offMarket = status === "SOLD" || status === "WITHDRAWN";
-  return {
-    status,
-    featured: status === "FOR_SALE",
-    listedPriceLabel: offMarket ? null : undefined,
-    auctionAt: offMarket ? null : undefined,
-    auctionLocation: offMarket ? null : undefined,
-    soldDate: status === "SOLD" ? new Date() : undefined,
-    seoTitle: `${listing.address || listing.title} | ${
-      status === "SOLD"
-        ? "Sold"
-        : status === "WITHDRAWN"
-          ? "Withdrawn"
-          : "For sale"
-    } with Drew Miller`,
-  };
-}
 
 function parseManualOpenHomes(value: unknown) {
   if (!Array.isArray(value)) return null;
@@ -66,7 +46,7 @@ export async function PATCH(req: Request, { params }: Params) {
 
   const listing = await prisma.listing.findUnique({
     where: { id },
-    select: { id: true, slug: true, address: true, title: true },
+    select: listingAdminSelect,
   });
   if (!listing) {
     return NextResponse.json({ error: "Listing not found" }, { status: 404 });
@@ -150,20 +130,12 @@ export async function PATCH(req: Request, { params }: Params) {
       where: { id: listing.id },
       data: {
         leadAgentId: ordered[0]?.id ?? null,
-        ...(status ? statusUpdate(listing, status) : {}),
       },
-    });
-  } else if (status) {
-    await prisma.listing.update({
-      where: { id: listing.id },
-      data: statusUpdate(listing, status),
     });
   }
 
-  if (status === "SOLD" || status === "WITHDRAWN") {
-    await prisma.listingOpenHome.deleteMany({
-      where: { listingId: listing.id },
-    });
+  if (status) {
+    await applyAdminListingStatus(listing, status);
   }
 
   if (manualHomes && status !== "SOLD" && status !== "WITHDRAWN") {
@@ -195,6 +167,14 @@ export async function PATCH(req: Request, { params }: Params) {
           sortOrder,
         })),
       });
+    }
+  }
+
+  if (!status) {
+    try {
+      revalidateListingPages(listing.slug);
+    } catch {
+      /* pages are force-dynamic */
     }
   }
 

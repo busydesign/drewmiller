@@ -996,6 +996,11 @@ export function AdminDashboard({
                             <p className="text-xs font-bold uppercase tracking-[0.12em] text-ink-soft">
                               Status
                             </p>
+                            <p className="mt-1 text-xs text-ink-soft">
+                              Choose Sold, then click{" "}
+                              <strong>Save listing details</strong>. That
+                              updates Drew’s site without fetching Ray White.
+                            </p>
                             <div className="mt-2">
                               {statusSelect(
                                 `edit-status-${listing.id}`,
