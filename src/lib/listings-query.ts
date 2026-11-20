@@ -47,20 +47,11 @@ export function agentsForCard(listing: ListingWithAgents) {
   return [];
 }
 
-function listingHasDrew<T extends ListingWithAgents>(listing: T) {
-  if (listing.leadAgent?.isLead) return true;
-  return listing.agentLinks.some((link) => link.agent.isLead);
-}
-
-/** Drew’s campaigns first (lead or co-agent), then most recently added. */
+/** Newest current campaigns first, across Drew’s full team. */
 export function sortTeamListings<T extends ListingWithAgents>(rows: T[]): T[] {
-  return [...rows].sort((a, b) => {
-    const aDrew = listingHasDrew(a) ? 1 : 0;
-    const bDrew = listingHasDrew(b) ? 1 : 0;
-    if (aDrew !== bDrew) return bDrew - aDrew;
-
-    return b.createdAt.getTime() - a.createdAt.getTime();
-  });
+  return [...rows].sort(
+    (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+  );
 }
 
 export async function getCurrentTeamListings(take?: number) {

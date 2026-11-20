@@ -33,7 +33,7 @@ export default async function HomePage() {
   const [settings, currentListings, team, mapPins, blogPosts, stats] =
     await Promise.all([
       prisma.siteSettings.findUnique({ where: { id: "default" } }),
-      getCurrentTeamListings(10),
+      getCurrentTeamListings(),
       prisma.agent.findMany({
         where: { published: true },
         orderBy: [{ isLead: "desc" }, { sortOrder: "asc" }],
@@ -482,8 +482,7 @@ export default async function HomePage() {
                   Current listings
                 </h2>
                 <p className="mt-3 max-w-xl text-ink-soft">
-                  Properties across Drew’s full team — each with a clear lead
-                  agent.
+                  Every current campaign from Drew’s team.
                 </p>
               </div>
               <Link href="/listings" className="btn btn-primary">
