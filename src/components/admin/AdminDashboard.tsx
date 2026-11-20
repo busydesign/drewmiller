@@ -16,10 +16,6 @@ import {
 } from "@/lib/listing-status";
 import { labelForListingLink } from "@/lib/listing-links";
 import {
-  fetchRayWhiteListingInBrowser,
-  isRayWhiteBlockedError,
-} from "@/lib/listing-import/fetch-raywhite-browser";
-import {
   formatOpenHome,
   nextOpenHomeLabel,
   toNzDateTimeLocal,
@@ -254,38 +250,11 @@ export function AdminDashboard({
       slug?: string;
       images?: number;
       updated?: boolean;
+      alreadyPublished?: boolean;
       agents?: Array<{ name: string }>;
     };
-    if (res.ok) return data;
-
-    if (
-      payload.sourceListing ||
-      !isRayWhiteBlockedError(data.error)
-    ) {
-      throw new Error(data.error || "Import failed");
-    }
-
-    setMessage("Ray White blocked the server — retrying from this browser…");
-    const sourceListing = await fetchRayWhiteListingInBrowser(
-      String(payload.url || "")
-    );
-    if (!sourceListing) {
-      throw new Error(
-        data.error ||
-          "Ray White blocked the website server (403). Try Publish again in a moment."
-      );
-    }
-
-    const retry = await fetch("/api/admin/listing-import", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...payload, sourceListing }),
-    });
-    const retryData = (await retry.json()) as typeof data;
-    if (!retry.ok) {
-      throw new Error(retryData.error || data.error || "Import failed");
-    }
-    return retryData;
+    if (!res.ok) throw new Error(data.error || "Import failed");
+    return data;
   }
 
   async function previewImport() {
@@ -299,6 +268,10 @@ export function AdminDashboard({
       setImportStatus(
         data.preview?.status === "SOLD" ? "SOLD" : "FOR_SALE"
       );
+      if (data.alreadyPublished && data.slug) {
+        setLiveSlug(data.slug);
+        setMessage(`Already live /${data.slug}`);
+      }
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Failed");
       setPreview(null);
@@ -349,9 +322,11 @@ export function AdminDashboard({
         : "";
       setLiveSlug(typeof data.slug === "string" ? data.slug : null);
       setMessage(
-        `${data.updated ? "Updated" : "Published"} /${data.slug} · ${data.images || 0} photos${
-          agentLabel ? ` · ${agentLabel}` : ""
-        }`
+        data.alreadyPublished
+          ? `Already live /${data.slug}`
+          : `${data.updated ? "Updated" : "Published"} /${data.slug} · ${data.images || 0} photos${
+              agentLabel ? ` · ${agentLabel}` : ""
+            }`
       );
       if (!opts?.listingId) {
         setPreview(null);
@@ -640,9 +615,9 @@ export function AdminDashboard({
               <h2 className="display mt-2 text-3xl">Paste a listing URL</h2>
               <p className="mt-2 text-sm text-ink-soft">
                 Paste the Ray White property URL and click{" "}
-                <strong>Publish listing</strong>. Listings are added only when
-                you publish them here — the site does not pull new campaigns
-                from Ray White on its own. Preview is optional.
+                <strong>Publish listing</strong>. If that campaign is already
+                on this site, Publish will open the existing page instead of
+                failing. Preview is optional.
               </p>
               <div className="mt-4 flex flex-col gap-3 md:flex-row">
                 <input

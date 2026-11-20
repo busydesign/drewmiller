@@ -294,7 +294,14 @@ export async function fetchRayWhiteListingFromApi(
 ): Promise<ListingImportPreview | null> {
   const listing = await fetchListingByRef(ref);
   if (!listing) return null;
-  const canonical =
-    listing.links?.find((link) => link.code === "PRL")?.url || sourceUrl;
+  const pastedHasRef =
+    (listing.id != null && sourceUrl.includes(String(listing.id))) ||
+    Boolean(
+      listing.sourceId &&
+        sourceUrl.toUpperCase().includes(listing.sourceId.toUpperCase())
+    );
+  const canonical = pastedHasRef
+    ? sourceUrl
+    : listing.links?.find((link) => link.code === "PRL")?.url || sourceUrl;
   return listingToPreview(listing, canonical);
 }

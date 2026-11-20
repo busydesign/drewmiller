@@ -61,11 +61,63 @@ async function findExistingListing(opts: {
       : null) ||
     (ref?.value
       ? await prisma.listing.findFirst({
-          where: { sourceUrl: { contains: ref.value } },
+          where: {
+            OR: [
+              { sourceUrl: { contains: ref.value } },
+              { coverImageUrl: { contains: ref.value } },
+              { images: { some: { url: { contains: ref.value } } } },
+            ],
+          },
           select: listingAdminSelect,
         })
       : null)
   );
+}
+
+async function previewFromExistingListing(id: string) {
+  const listing = await prisma.listing.findUnique({
+    where: { id },
+    include: {
+      images: {
+        orderBy: { sortOrder: "asc" },
+        select: { url: true },
+      },
+      agentLinks: {
+        orderBy: { sortOrder: "asc" },
+        include: {
+          agent: { select: { name: true, rwMemberId: true } },
+        },
+      },
+    },
+  });
+  if (!listing) return null;
+  return {
+    source: "raywhite.co.nz" as const,
+    sourceUrl: listing.sourceUrl || "",
+    title: listing.title,
+    propertyAddress: listing.address,
+    description: listing.bodyMarkdown,
+    bodyHtml: listing.bodyHtml,
+    bodyMarkdown: listing.bodyMarkdown,
+    summary: listing.summary,
+    galleryUrls: listing.images.map((image) => image.url).filter(Boolean),
+    listedPriceLabel: listing.listedPriceLabel,
+    propertyType: listing.propertyType,
+    latitude: listing.latitude,
+    longitude: listing.longitude,
+    status: listing.status === "SOLD" ? ("SOLD" as const) : ("FOR_SALE" as const),
+    hints: {
+      bedrooms: listing.bedrooms,
+      bathrooms: listing.bathrooms,
+      parking: listing.parking,
+      externalId: listing.externalId,
+      listedPriceLabel: listing.listedPriceLabel,
+      agents: listing.agentLinks.map((link) => ({
+        fullName: link.agent.name,
+        memberId: link.agent.rwMemberId,
+      })),
+    },
+  };
 }
 
 function suburbFromAddress(address: string): string | null {
@@ -121,27 +173,40 @@ export async function POST(req: Request) {
       try {
         preview = await fetchListingPreview(url);
       } catch (err) {
-        if (mode !== "publish") throw err;
         const existing = await findExistingListing({ listingId, sourceUrl: url });
-        const fallbackStatus =
-          statusOverride ??
-          (existing ? toAdminListingStatus(existing.status) : null);
-        if (
-          existing &&
-          (fallbackStatus === "SOLD" || fallbackStatus === "WITHDRAWN")
-        ) {
-          await applyAdminListingStatus(existing, fallbackStatus);
+        if (existing) {
+          if (mode === "preview") {
+            const fromDb = await previewFromExistingListing(existing.id);
+            return NextResponse.json({
+              preview: fromDb,
+              alreadyPublished: true,
+              slug: existing.slug,
+            });
+          }
+          const fallbackStatus =
+            statusOverride ?? toAdminListingStatus(existing.status);
+          if (fallbackStatus === "SOLD" || fallbackStatus === "WITHDRAWN") {
+            await applyAdminListingStatus(existing, fallbackStatus);
+          }
           return NextResponse.json({
             ok: true,
             slug: existing.slug,
             id: existing.id,
-            source: "admin-status",
+            source: "already-published",
             images: 0,
             updated: true,
+            alreadyPublished: true,
             agents: [],
           });
         }
-        throw err;
+        const blocked =
+          err instanceof Error &&
+          /403|blocked|cloudfront|could not load that page/i.test(err.message);
+        throw blocked
+          ? new Error(
+              "Ray White blocked this website from reading that page. If the property is already on Current listings, you’re done. If it’s new, try the short office link (rwmairangibay.co.nz/MRG…)."
+            )
+          : err;
       }
     }
     if (mode === "preview") {
