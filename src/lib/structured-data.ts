@@ -28,6 +28,18 @@ export function realEstateAgentJsonLd() {
       "@type": "Organization",
       name: BRAND.agencyName,
     },
+      eventStatus: "https://schema.org/EventScheduled",
+      organizer: {
+        "@type": "Person",
+        name: "Drew Miller",
+        url: "https://www.drewmiller.co.nz",
+      },
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "NZD",
+        availability: "https://schema.org/InStock",
+      },
     aggregateRating: {
       "@type": "AggregateRating",
       ratingValue: AGENT_STATS.rmaRating,
