@@ -47,11 +47,16 @@ export function agentsForCard(listing: ListingWithAgents) {
   return [];
 }
 
-/** Drew’s listings first, then most recently added to this site. */
+function listingHasDrew<T extends ListingWithAgents>(listing: T) {
+  if (listing.leadAgent?.isLead) return true;
+  return listing.agentLinks.some((link) => link.agent.isLead);
+}
+
+/** Drew’s campaigns first (lead or co-agent), then most recently added. */
 export function sortTeamListings<T extends ListingWithAgents>(rows: T[]): T[] {
   return [...rows].sort((a, b) => {
-    const aDrew = a.leadAgent?.isLead ? 1 : 0;
-    const bDrew = b.leadAgent?.isLead ? 1 : 0;
+    const aDrew = listingHasDrew(a) ? 1 : 0;
+    const bDrew = listingHasDrew(b) ? 1 : 0;
     if (aDrew !== bDrew) return bDrew - aDrew;
 
     return b.createdAt.getTime() - a.createdAt.getTime();

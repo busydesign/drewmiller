@@ -45,8 +45,9 @@ export default async function CurrentListingsPage({
         <p className="eyebrow">For sale now · {filtered.length} properties</p>
         <h1 className="display mt-2 text-5xl md:text-6xl">Current listings</h1>
         <p className="mt-4 max-w-2xl text-ink-soft">
-          Every current listing from Drew Miller’s team — Drew first, then most
-          recently added. Cards show everyone marketing the property.
+          Every current listing from Drew Miller’s team — Drew’s campaigns
+          first (including where he is co-agent), then the rest of the team,
+          newest first. Cards show everyone marketing the property.
         </p>
 
         <div className="mt-6 flex flex-wrap gap-2">
