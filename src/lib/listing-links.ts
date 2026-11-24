@@ -17,6 +17,16 @@ export function normalizeListingUrl(raw: string): string | null {
   }
 }
 
+/** VaultRE packs include asking prices, so they stay off the public listing. */
+export function isPrivateListingLink(url: string): boolean {
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, "").toLowerCase();
+    return host === "vaultre.com.au" || host.endsWith(".vaultre.com.au");
+  } catch {
+    return false;
+  }
+}
+
 export function labelForListingLink(
   url: string,
   customLabel?: string | null

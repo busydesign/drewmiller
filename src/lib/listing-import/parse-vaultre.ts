@@ -1,7 +1,6 @@
 import { decodeHtmlEntities } from "@/lib/listing-import/decode-html";
 import { metaContent } from "@/lib/listing-import/parse-meta";
 import { extractRayWhiteListingRef } from "@/lib/listing-import/raywhite-source-id";
-import { labelForListingLink } from "@/lib/listing-links";
 import type { ListingImportPreview } from "@/lib/listing-import/types";
 
 function cleanText(s: string) {
@@ -131,12 +130,7 @@ export function parseVaultRe(
     listedPriceLabel: null,
     omitListedPrice: true,
     propertyType: "House",
-    extraLinks: [
-      {
-        label: labelForListingLink(sourceUrl),
-        url: sourceUrl,
-      },
-    ],
+    extraLinks: [],
     hints: {
       bedrooms: iconCount(html, "bed\\.png"),
       bathrooms: iconCount(html, "shower\\.png"),

@@ -1,4 +1,8 @@
-import { labelForListingLink, normalizeListingUrl } from "@/lib/listing-links";
+import {
+  isPrivateListingLink,
+  labelForListingLink,
+  normalizeListingUrl,
+} from "@/lib/listing-links";
 
 type ExtraLink = {
   label: string;
@@ -12,10 +16,13 @@ export function ListingOutboundLinks({
   sourceUrl: string | null;
   extraLinks: ExtraLink[];
 }) {
-  const source = sourceUrl ? normalizeListingUrl(sourceUrl) : null;
+  const sourceRaw = sourceUrl ? normalizeListingUrl(sourceUrl) : null;
+  const source =
+    sourceRaw && !isPrivateListingLink(sourceRaw) ? sourceRaw : null;
   const extras = extraLinks.filter((link) => {
     const url = normalizeListingUrl(link.url);
-    return Boolean(url) && url !== source;
+    if (!url || url === source || isPrivateListingLink(url)) return false;
+    return true;
   });
 
   if (!source && extras.length === 0) return null;

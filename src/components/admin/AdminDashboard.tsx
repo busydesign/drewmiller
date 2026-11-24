@@ -616,9 +616,9 @@ export function AdminDashboard({
               <p className="mt-2 text-sm text-ink-soft">
                 Paste a Ray White or VaultRE property URL and click{" "}
                 <strong>Publish listing</strong>. VaultRE packs keep the photo
-                order and are published without a price. If that campaign is
-                already on this site, Publish will open the existing page
-                instead of failing. Preview is optional.
+                order and are published without a price or a public pack
+                link. If that campaign is already on this site, Publish will
+                open the existing page instead of failing. Preview is optional.
               </p>
               <div className="mt-4 flex flex-col gap-3 md:flex-row">
                 <input
@@ -1134,8 +1134,9 @@ export function AdminDashboard({
                               Extra listing links
                             </p>
                             <p className="mt-1 text-xs text-ink-soft">
-                              Add VaultRE property information packs or other
-                              buyer links. Ray White stays on{" "}
+                              Extra buyer links shown on the public listing.
+                              VaultRE packs stay off the site because they
+                              include pricing. Ray White stays on{" "}
                               <strong>source URL</strong> above.
                             </p>
                             <div className="mt-3 space-y-2">
@@ -1232,8 +1233,8 @@ export function AdminDashboard({
                             </p>
                             <p className="mt-1 text-xs text-ink-soft">
                               Paste a Ray White / office / VaultRE / homes
-                              link. VaultRE adds the Property information button
-                              and does not change the price. This refreshes
+                              link. VaultRE keeps photo order and does not add
+                              a price or a public pack link. This refreshes
                               photos and details on{" "}
                               <strong>/{listing.slug}</strong> without creating a
                               duplicate page. Ticked agents above are applied
