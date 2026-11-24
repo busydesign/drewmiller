@@ -2,6 +2,7 @@ import { detectListingImportSource } from "@/lib/listing-import/detect-source";
 import { fetchRayWhiteListingFromApi } from "@/lib/listing-import/fetch-raywhite-api";
 import { parseHomesCoNz } from "@/lib/listing-import/parse-homes";
 import { parseRayWhite } from "@/lib/listing-import/parse-raywhite";
+import { parseVaultRe } from "@/lib/listing-import/parse-vaultre";
 import {
   metaContent,
   metaNameContent,
@@ -144,6 +145,64 @@ async function fetchHtml(url: string): Promise<string> {
   }
 }
 
+function mergeVaultReWithRayWhite(
+  vault: ListingImportPreview,
+  rw: ListingImportPreview
+): ListingImportPreview {
+  return {
+    ...vault,
+    propertyAddress: rw.propertyAddress || vault.propertyAddress,
+    propertyType: vault.propertyType || rw.propertyType,
+    buildingArea: vault.buildingArea || rw.buildingArea,
+    landArea: vault.landArea || rw.landArea,
+    latitude: rw.latitude ?? vault.latitude,
+    longitude: rw.longitude ?? vault.longitude,
+    openHomes: rw.openHomes?.length ? rw.openHomes : vault.openHomes,
+    auctionAt: vault.auctionAt || rw.auctionAt,
+    auctionLocation: vault.auctionLocation || rw.auctionLocation,
+    sourceUrl: rw.sourceUrl || vault.sourceUrl,
+    listedPriceLabel: null,
+    omitListedPrice: true,
+    extraLinks: vault.extraLinks,
+    galleryUrls: vault.galleryUrls,
+    title: vault.title,
+    description: vault.description,
+    bodyHtml: vault.bodyHtml,
+    bodyMarkdown: vault.bodyMarkdown,
+    summary: vault.summary,
+    hints: {
+      ...rw.hints,
+      ...vault.hints,
+      listedPriceLabel: null,
+      bedrooms: vault.hints.bedrooms ?? rw.hints.bedrooms,
+      bathrooms: vault.hints.bathrooms ?? rw.hints.bathrooms,
+      parking: vault.hints.parking ?? rw.hints.parking,
+      agents: rw.hints.agents?.length ? rw.hints.agents : vault.hints.agents,
+      externalId: vault.hints.externalId || rw.hints.externalId,
+      buildingArea: vault.hints.buildingArea || rw.hints.buildingArea,
+      landArea: vault.hints.landArea || rw.hints.landArea,
+      propertyType: vault.hints.propertyType || rw.hints.propertyType,
+    },
+  };
+}
+
+async function fetchVaultRePreview(
+  sourceUrl: string
+): Promise<ListingImportPreview> {
+  const html = await fetchHtml(sourceUrl);
+  const vault = parseVaultRe(html, sourceUrl);
+  const rwRef = extractRayWhiteListingRef(vault.sourceUrl);
+  if (!rwRef) return vault;
+
+  try {
+    const rw = await fetchRayWhiteListingFromApi(rwRef, vault.sourceUrl);
+    if (rw) return mergeVaultReWithRayWhite(vault, rw);
+  } catch {
+    /* VaultRE pack is enough to publish; Ray White is optional enrichment */
+  }
+  return vault;
+}
+
 export async function fetchListingPreview(
   sourceUrl: string
 ): Promise<ListingImportPreview> {
@@ -155,13 +214,17 @@ export async function fetchListingPreview(
   const source = detectListingImportSource(trimmed);
   if (source === "unknown") {
     throw new Error(
-      "Paste a property link from Ray White, homes.co.nz, Trade Me, or OneRoof."
+      "Paste a property link from Ray White, VaultRE, homes.co.nz, Trade Me, or OneRoof."
     );
   }
 
   // Prefer Ray White — richest source for Drew’s listings
   if (source === "raywhite.co.nz") {
     return fetchRayWhitePreview(trimmed);
+  }
+
+  if (source === "vaultre.com.au") {
+    return fetchVaultRePreview(trimmed);
   }
 
   const html = await fetchHtml(trimmed);

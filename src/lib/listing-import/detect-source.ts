@@ -16,6 +16,9 @@ export function detectListingImportSource(url: string): ListingImportSource {
     ) {
       return "raywhite.co.nz";
     }
+    if (host === "vaultre.com.au" || host.endsWith(".vaultre.com.au")) {
+      return "vaultre.com.au";
+    }
   } catch {
     /* invalid URL */
   }
@@ -27,4 +30,5 @@ export const SUPPORTED_LISTING_IMPORT_HOSTS = [
   "trademe.co.nz",
   "oneroof.co.nz",
   "raywhite.co.nz",
+  "vaultre.com.au",
 ] as const;

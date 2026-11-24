@@ -614,10 +614,11 @@ export function AdminDashboard({
               <p className="eyebrow">Add / refresh listing</p>
               <h2 className="display mt-2 text-3xl">Paste a listing URL</h2>
               <p className="mt-2 text-sm text-ink-soft">
-                Paste the Ray White property URL and click{" "}
-                <strong>Publish listing</strong>. If that campaign is already
-                on this site, Publish will open the existing page instead of
-                failing. Preview is optional.
+                Paste a Ray White or VaultRE property URL and click{" "}
+                <strong>Publish listing</strong>. VaultRE packs keep the photo
+                order and are published without a price. If that campaign is
+                already on this site, Publish will open the existing page
+                instead of failing. Preview is optional.
               </p>
               <div className="mt-4 flex flex-col gap-3 md:flex-row">
                 <input
@@ -1146,7 +1147,9 @@ export function AdminDashboard({
                                   <label className="flex-1 text-xs text-ink-soft">
                                     URL
                                     <input
-                                      type="url"
+                                      type="text"
+                                      inputMode="url"
+                                      autoComplete="off"
                                       value={link.url}
                                       onChange={(e) => {
                                         const url = e.target.value;
@@ -1228,8 +1231,10 @@ export function AdminDashboard({
                               Update from external URL
                             </p>
                             <p className="mt-1 text-xs text-ink-soft">
-                              Paste a Ray White / office / homes link. This
-                              refreshes photos and details on{" "}
+                              Paste a Ray White / office / VaultRE / homes
+                              link. VaultRE adds the Property information button
+                              and does not change the price. This refreshes
+                              photos and details on{" "}
                               <strong>/{listing.slug}</strong> without creating a
                               duplicate page. Ticked agents above are applied
                               too.

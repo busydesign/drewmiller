@@ -12,6 +12,8 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "cdn6.ep.dynamics.net" },
       { protocol: "https", hostname: "static.ratemyagent.co.nz" },
       { protocol: "https", hostname: "fastly.ratemyagent.co.nz" },
+      { protocol: "https", hostname: "propertyphotos.vaultre.com.au" },
+      { protocol: "https", hostname: "files.vaultre.com.au" },
     ],
     unoptimized: true,
   },

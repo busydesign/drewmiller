@@ -3,6 +3,7 @@ export type ListingImportSource =
   | "trademe.co.nz"
   | "oneroof.co.nz"
   | "raywhite.co.nz"
+  | "vaultre.com.au"
   | "unknown";
 
 export type ListingImportHints = {
@@ -53,6 +54,8 @@ export type ListingImportPreview = {
   bodyMarkdown?: string | null;
   summary?: string | null;
   listedPriceLabel?: string | null;
+  /** VaultRE imports never copy the pack price onto the public listing. */
+  omitListedPrice?: boolean;
   propertyType?: string | null;
   buildingArea?: string | null;
   landArea?: string | null;
@@ -61,6 +64,7 @@ export type ListingImportPreview = {
   openHomes?: Array<{ startsAt: string; endsAt: string }>;
   auctionAt?: string | null;
   auctionLocation?: string | null;
+  extraLinks?: Array<{ label: string; url: string }>;
   /** When the listing appears sold / for sale */
   status?: "SOLD" | "FOR_SALE" | "INSPECTIONS";
   hints: ListingImportHints;

@@ -1,4 +1,4 @@
-import { normalizeListingUrl } from "@/lib/listing-links";
+import { labelForListingLink, normalizeListingUrl } from "@/lib/listing-links";
 
 type ExtraLink = {
   label: string;
@@ -29,7 +29,7 @@ export function ListingOutboundLinks({
           rel="noreferrer"
           className="btn btn-primary mt-6 w-full"
         >
-          View on Ray White
+          {labelForListingLink(source)}
         </a>
       ) : null}
       {extras.map((link, index) => (

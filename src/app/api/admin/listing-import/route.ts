@@ -20,6 +20,7 @@ import {
   isCurrentListingStatus,
   type AdminListingStatus,
 } from "@/lib/listing-status";
+import { labelForListingLink } from "@/lib/listing-links";
 import { revalidateListingPages } from "@/lib/revalidate-listings";
 import { slugify } from "@/lib/slugify";
 
@@ -53,6 +54,12 @@ async function findExistingListing(opts: {
           select: listingAdminSelect,
         })
       : null) ||
+    (opts.sourceUrl
+      ? await prisma.listing.findFirst({
+          where: { extraLinks: { some: { url: opts.sourceUrl } } },
+          select: listingAdminSelect,
+        })
+      : null) ||
     (externalId
       ? await prisma.listing.findUnique({
           where: { externalId },
@@ -72,6 +79,53 @@ async function findExistingListing(opts: {
         })
       : null)
   );
+}
+
+function streetKey(address: string): string {
+  return address
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .split(" ")
+    .slice(0, 4)
+    .join(" ");
+}
+
+function addressesLikelySame(a: string, b: string): boolean {
+  const left = streetKey(a);
+  const right = streetKey(b);
+  if (!left || !right) return false;
+  return left === right || left.includes(right) || right.includes(left);
+}
+
+async function mergeExtraLinks(
+  listingId: string,
+  links: Array<{ label: string; url: string }>
+) {
+  const incoming = links
+    .map((link) => ({
+      url: link.url.trim(),
+      label: link.label.trim() || labelForListingLink(link.url),
+    }))
+    .filter((link) => /^https?:\/\//i.test(link.url));
+  if (incoming.length === 0) return;
+
+  const existing = await prisma.listingExternalLink.findMany({
+    where: { listingId },
+    select: { url: true },
+  });
+  const seen = new Set(existing.map((row) => row.url));
+  const toAdd = incoming.filter((link) => !seen.has(link.url));
+  if (toAdd.length === 0) return;
+
+  await prisma.listingExternalLink.createMany({
+    data: toAdd.map((link, index) => ({
+      listingId,
+      label: link.label,
+      url: link.url,
+      sortOrder: existing.length + index,
+    })),
+  });
 }
 
 async function previewFromExistingListing(id: string) {
@@ -216,30 +270,41 @@ export async function POST(req: Request) {
     const address = preview.propertyAddress || preview.title;
     const externalId = preview.hints.externalId?.trim() || null;
 
-    // Prefer explicit listing target (admin "refresh this page"), else match
-    // sourceUrl / externalId (team sync often creates the row first).
-    const existing =
-      (listingId
+    const targeted =
+      listingId
         ? await prisma.listing.findUnique({ where: { id: listingId } })
-        : null) ||
-      (await prisma.listing.findFirst({
-        where: { sourceUrl: preview.sourceUrl },
-      })) ||
-      (externalId
-        ? await prisma.listing.findUnique({ where: { externalId } })
-        : null) ||
-      (externalId
-        ? await prisma.listing.findFirst({
-            where: { sourceUrl: { contains: externalId } },
-          })
-        : null);
-
-    if (listingId && !existing) {
+        : null;
+    if (listingId && !targeted) {
       return NextResponse.json(
         { error: "Target listing not found" },
         { status: 404 }
       );
     }
+
+    // VaultRE packs belong to one property. Don't overwrite a different
+    // campaign if someone pasted the pack on the wrong Edit row.
+    const targetedMatches =
+      targeted &&
+      (preview.source !== "vaultre.com.au" ||
+        addressesLikelySame(targeted.address, address));
+
+    const existing =
+      (targetedMatches ? targeted : null) ||
+      (await prisma.listing.findFirst({
+        where: {
+          OR: [
+            { sourceUrl: preview.sourceUrl },
+            { extraLinks: { some: { url } } },
+            { extraLinks: { some: { url: preview.sourceUrl } } },
+            ...(externalId
+              ? [
+                  { externalId },
+                  { sourceUrl: { contains: externalId } },
+                ]
+              : []),
+          ],
+        },
+      }));
 
     const status: AdminListingStatus =
       statusOverride ??
@@ -285,15 +350,16 @@ export async function POST(req: Request) {
     }
 
     const suburb = suburbFromAddress(address);
-    const listedPriceLabel =
-      preview.listedPriceLabel || preview.hints.listedPriceLabel || null;
+    const listedPriceLabel = preview.omitListedPrice
+      ? existing?.listedPriceLabel ?? null
+      : preview.listedPriceLabel || preview.hints.listedPriceLabel || null;
     const building = preview.buildingArea || preview.hints.buildingArea || null;
     const land = preview.landArea || preview.hints.landArea || null;
     const summary =
       preview.summary ||
       [
         preview.title !== address ? preview.title : null,
-        listedPriceLabel,
+        preview.omitListedPrice ? null : listedPriceLabel,
         building ? `Building ${building}` : null,
         land ? `Land ${land}` : null,
       ]
@@ -370,7 +436,15 @@ export async function POST(req: Request) {
         );
     }
 
+    if (matchedAgents.length === 0 && preview.source === "vaultre.com.au") {
+      const drew = teamAgents.find((agent) => agent.isLead) || teamAgents[0];
+      if (drew) {
+        matchedAgents = [{ agent: drew, index: 0, isLead: true }];
+      }
+    }
+
     const leadAgent = matchedAgents.find((a) => a.isLead)?.agent || null;
+    const galleryUrls = preview.galleryUrls.slice(0, 60);
 
     const listingData = {
       slug,
@@ -381,7 +455,7 @@ export async function POST(req: Request) {
       summary,
       bodyMarkdown: preview.bodyMarkdown || preview.description,
       bodyHtml: preview.bodyHtml || null,
-      coverImageUrl: preview.galleryUrls[0] || null,
+      coverImageUrl: galleryUrls[0] || existing?.coverImageUrl || null,
       bedrooms: preview.hints.bedrooms ?? null,
       bathrooms: preview.hints.bathrooms ?? null,
       parking: preview.hints.parking ?? null,
@@ -402,33 +476,39 @@ export async function POST(req: Request) {
       featured: isForSale,
     };
 
+    const imageCreates = galleryUrls.map((imageUrl, sortOrder) => ({
+      url: imageUrl,
+      alt: address,
+      sortOrder,
+    }));
+
     const listing = existing
       ? await prisma.listing.update({
           where: { id: existing.id },
           data: {
             ...listingData,
-            images: {
-              deleteMany: {},
-              create: preview.galleryUrls.slice(0, 60).map((imageUrl, sortOrder) => ({
-                url: imageUrl,
-                alt: address,
-                sortOrder,
-              })),
-            },
+            ...(galleryUrls.length > 0
+              ? {
+                  images: {
+                    deleteMany: {},
+                    create: imageCreates,
+                  },
+                }
+              : {}),
           },
         })
       : await prisma.listing.create({
           data: {
             ...listingData,
             images: {
-              create: preview.galleryUrls.slice(0, 60).map((imageUrl, sortOrder) => ({
-                url: imageUrl,
-                alt: address,
-                sortOrder,
-              })),
+              create: imageCreates,
             },
           },
         });
+
+    if (preview.extraLinks?.length) {
+      await mergeExtraLinks(listing.id, preview.extraLinks);
+    }
 
     await prisma.listingAgent.deleteMany({ where: { listingId: listing.id } });
     if (matchedAgents.length > 0) {
